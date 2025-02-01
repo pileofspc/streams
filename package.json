@@ -1,0 +1,15 @@
+{
+    "name": "streams",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.ts",
+    "type": "module",
+    "scripts": {
+        "start": "node --experimental-transform-types ./main.ts"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^22.13.0"
+    }
+}
