@@ -4,8 +4,6 @@ import { writeFileSync } from "node:fs";
 const browser = await firefox.launch();
 const page = await browser.newPage();
 
-let counter = 0;
-
 page.on("response", async (response) => {
     const url = response.url();
     const method = response.request().method();
@@ -28,7 +26,7 @@ page.on("response", async (response) => {
     }
 });
 
-await page.goto("https://twitch.tv/hyver");
-await page.waitForTimeout(10000); // Playwright's built-in timeout
+await page.goto("https://twitch.tv/dmitry_bale");
+await page.waitForTimeout(60_000); // Playwright's built-in timeout
 
 await browser.close();

@@ -1,18 +1,21 @@
 {
-  "name": "streams",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.ts",
-  "type": "module",
-  "scripts": {
-    "start": "node --experimental-transform-types ./main.ts"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^22.13.0"
-  },
-  "dependencies": {
-    "@playwright/test": "^1.50.1"
-  }
+    "name": "streams",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.ts",
+    "type": "module",
+    "scripts": {
+        "start": "node --experimental-transform-types ./main.ts",
+        "upload": "node --experimental-transform-types ./upload.ts"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^22.13.0"
+    },
+    "dependencies": {
+        "@playwright/test": "^1.50.1",
+        "google-auth-library": "^9.15.1",
+        "googleapis": "^144.0.0"
+    }
 }

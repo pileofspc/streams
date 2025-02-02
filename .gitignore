@@ -1,6 +1,8 @@
 node_modules
 unused
 output
+secret/
+.env
 
 # Playwright
 /test-results/
