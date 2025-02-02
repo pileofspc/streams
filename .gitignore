@@ -3,6 +3,7 @@ unused
 output
 secret/
 .env
+.idea
 
 # Playwright
 /test-results/

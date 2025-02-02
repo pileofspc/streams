@@ -1,4 +1,4 @@
-export type CredentialsJson = {
+export type GoogleCredentials = {
     installed: {
         client_id: string;
         project_id: string;
@@ -10,4 +10,10 @@ export type CredentialsJson = {
     };
 };
 
-export type Token = any;
+export type GoogleToken = {
+    access_token?: string | undefined | null;
+    refresh_token?: string | undefined | null;
+    scope?: string;
+    token_type?: string | null | undefined;
+    expiry_date?: number | null | undefined;
+};

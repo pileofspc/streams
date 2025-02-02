@@ -3,9 +3,11 @@ import { nodeInstanceOf } from "./utils.ts";
 import { google } from "googleapis";
 import * as path from "path";
 import readline from "readline/promises";
-import type { CredentialsJson, Token } from "./types.ts";
-
-type AUTH = InstanceType<typeof google.auth.OAuth2>;
+import assert from "assert";
+import type { GoogleCredentials, GoogleToken } from "./types.ts";
+import type { Credentials, OAuth2Client } from "google-auth-library";
+import { Readable } from "stream";
+import { VideoFilesReader } from "./streams.ts";
 
 // TODO: Отсортировать импорты
 // TODO: Разобраться с трайкетчами
@@ -16,11 +18,11 @@ const TOKEN_PATH = path.resolve(SECRET_PATH, "./token.json");
 const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
 const VIDEOFILE_PATH = path.resolve(import.meta.dirname, "./output/all.ts");
 
-const credentials: CredentialsJson = JSON.parse(
+const credentials: GoogleCredentials = JSON.parse(
     fs.readFileSync(CREDENTIALS_PATH, { encoding: "utf-8" })
 );
 
-async function getNewToken(oAuth2Client: AUTH) {
+async function getNewToken(oAuth2Client: OAuth2Client): Promise<Credentials> {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: "offline",
         scope: SCOPES,
@@ -33,19 +35,21 @@ async function getNewToken(oAuth2Client: AUTH) {
     const code = await rl.question("Enter the code from that page here: ");
     rl.close();
 
-    return await new Promise((res, rej) => {
+    return new Promise((res, rej) => {
         oAuth2Client.getToken(code, (err, token) => {
             if (err) {
                 console.log("Error while trying to retrieve access token", err);
                 rej();
             }
-            oAuth2Client.credentials = token!;
-            storeToken(token!);
+
+            assert(token != null);
+            oAuth2Client.credentials = token;
+            storeToken(token);
             res(token);
         });
     });
 }
-function storeToken(token: Token) {
+function storeToken(token: GoogleToken) {
     try {
         fs.mkdirSync(SECRET_PATH);
     } catch (error) {
@@ -57,17 +61,19 @@ function storeToken(token: Token) {
     console.log("Token stored to: ", TOKEN_PATH);
 }
 async function getAuthorizedClient(
-    credentials: CredentialsJson
-): Promise<AUTH> {
+    credentials: GoogleCredentials
+): Promise<OAuth2Client> {
     const oAuth2Client = new google.auth.OAuth2(
         credentials.installed.client_id,
         credentials.installed.client_secret,
         credentials.installed.redirect_uris[0]
     );
 
-    let token: any = null;
     try {
-        token = JSON.parse(fs.readFileSync(TOKEN_PATH, { encoding: "utf-8" }));
+        const token: GoogleToken = JSON.parse(
+            fs.readFileSync(TOKEN_PATH, { encoding: "utf-8" })
+        );
+        oAuth2Client.credentials = token;
     } catch (error) {
         if (nodeInstanceOf(error, Error) && error.code === "ENOENT") {
             console.log("Token file not found! Getting new token.");
@@ -77,21 +83,17 @@ async function getAuthorizedClient(
         }
     }
 
-    oAuth2Client.credentials = token;
-
     return oAuth2Client;
 }
 
 async function uploadVideo() {
-    const service = google.youtube("v3");
     google.youtube("v3").videos.insert({
         auth: await getAuthorizedClient(credentials),
-        part: "snippet,status",
+        part: ["snippet", "status"],
         requestBody: {
             snippet: {
-                title: Date.now(),
+                title: String(Date.now()),
                 description: "Ну да я",
-                tags: [],
                 defaultLanguage: "ru",
                 defaultAudioLanguage: "ru",
             },
@@ -100,9 +102,9 @@ async function uploadVideo() {
             },
         },
         media: {
-            body: fs.createReadStream(VIDEOFILE_PATH),
+            body: new VideoFilesReader(),
         },
     });
 }
 
-uploadVideo();
+await uploadVideo();
