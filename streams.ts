@@ -1,21 +1,31 @@
-import assert from "assert";
 import fs from "fs";
+import path from "path";
 import { Readable, type ReadableOptions } from "stream";
 
 // TODO: Может быть на линуксе будет неправильный порядок
 
+interface VideoFilesReaderAdditionalOptions {
+    directory: string;
+}
 export class VideoFilesReader extends Readable {
-    currentSegment = 0;
-    currentFileName = "";
-    constructor(options?: ReadableOptions) {
+    _currentSegment = 0;
+    _currentFileName = "";
+    _directory;
+    constructor(options: ReadableOptions & VideoFilesReaderAdditionalOptions) {
         super(options);
+        this._directory = options.directory;
     }
-
     _read(size?: number): void {
         try {
-            const fileName = fs.readdirSync("./output")[this.currentSegment++];
-            this.currentFileName = fileName!;
-            const file = fs.readFileSync(`./output/${fileName}`);
+            let test = 1;
+            test;
+            const fileName = fs.readdirSync(path.resolve(this._directory))[
+                this._currentSegment++
+            ];
+            this._currentFileName = fileName!;
+            const file = fs.readFileSync(
+                path.resolve(this._directory, fileName)
+            );
             this.push(file);
         } catch (e) {
             const error = e;

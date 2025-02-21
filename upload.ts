@@ -86,7 +86,7 @@ async function getAuthorizedClient(
     return oAuth2Client;
 }
 
-async function uploadVideo() {
+export async function uploadVideoFromDirectory(path: string) {
     google.youtube("v3").videos.insert({
         auth: await getAuthorizedClient(credentials),
         part: ["snippet", "status"],
@@ -102,9 +102,9 @@ async function uploadVideo() {
             },
         },
         media: {
-            body: new VideoFilesReader(),
+            body: new VideoFilesReader({
+                directory: "./output",
+            }),
         },
     });
 }
-
-await uploadVideo();
