@@ -9,5 +9,6 @@
         "skipLibCheck": true,
         "noUncheckedIndexedAccess": true,
         "noImplicitAny": true
-    }
+    },
+    "exclude": ["node_modules", "output", "secret", "unused"]
 }

@@ -16,11 +16,17 @@ const SECRET_PATH = path.resolve(import.meta.dirname, "./secret");
 const CREDENTIALS_PATH = path.resolve(SECRET_PATH, "./credentials.json");
 const TOKEN_PATH = path.resolve(SECRET_PATH, "./token.json");
 const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
-const VIDEOFILE_PATH = path.resolve(import.meta.dirname, "./output/all.ts");
 
 const credentials: GoogleCredentials = JSON.parse(
     fs.readFileSync(CREDENTIALS_PATH, { encoding: "utf-8" })
 );
+
+function isTokenExpired(token: GoogleToken) {
+    const padding = 1000 * 60 * 60 * 5; // 5 hours
+    return (
+        token.expiry_date == null || token.expiry_date < Date.now() - padding
+    );
+}
 
 async function getNewToken(oAuth2Client: OAuth2Client): Promise<Credentials> {
     const authUrl = oAuth2Client.generateAuthUrl({
@@ -73,10 +79,16 @@ async function getAuthorizedClient(
         const token: GoogleToken = JSON.parse(
             fs.readFileSync(TOKEN_PATH, { encoding: "utf-8" })
         );
+        if (isTokenExpired(token)) {
+            throw new Error("Token expired");
+        }
         oAuth2Client.credentials = token;
     } catch (error) {
         if (nodeInstanceOf(error, Error) && error.code === "ENOENT") {
-            console.log("Token file not found! Getting new token.");
+            console.warn("Token file not found! Getting new token.");
+            await getNewToken(oAuth2Client);
+        } else if ((error as Error).message === "Token expired") {
+            console.warn("Token expired! Getting new token.");
             await getNewToken(oAuth2Client);
         } else {
             throw error;
@@ -108,3 +120,5 @@ export async function uploadVideoFromDirectory(path: string) {
         },
     });
 }
+
+await uploadVideoFromDirectory("./output");

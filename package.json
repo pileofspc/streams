@@ -6,7 +6,9 @@
     "type": "module",
     "scripts": {
         "start": "node --experimental-transform-types ./main.ts",
-        "upload": "node --experimental-transform-types ./upload.ts"
+        "upload": "node --experimental-transform-types ./upload.ts",
+        "read": "node --experimental-transform-types ./read.ts",
+        "download": "node --experimental-transform-types ./download.ts"
     },
     "author": "",
     "license": "ISC",
