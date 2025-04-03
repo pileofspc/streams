@@ -6,18 +6,18 @@
     "type": "module",
     "scripts": {
         "start": "node --experimental-transform-types ./main.ts",
-        "upload": "node --experimental-transform-types ./upload.ts",
-        "read": "node --experimental-transform-types ./read.ts",
-        "download": "node --experimental-transform-types ./download.ts"
+        "test": "node --experimental-transform-types ./test.ts"
     },
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "@types/node": "^22.13.0"
+        "@types/node": "^22.13.0",
+        "@types/node-cleanup": "^2.1.5"
     },
     "dependencies": {
         "@playwright/test": "^1.50.1",
         "google-auth-library": "^9.15.1",
-        "googleapis": "^144.0.0"
+        "googleapis": "^144.0.0",
+        "node-cleanup": "^2.1.2"
     }
 }

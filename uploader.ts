@@ -1,13 +1,13 @@
-import * as fs from "fs";
-import { nodeInstanceOf } from "./utils.ts";
-import { google } from "googleapis";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import readline from "readline/promises";
 import assert from "assert";
+import { google } from "googleapis";
+import { nodeInstanceOf, secondsToMs } from "./utils.ts";
+
 import type { GoogleCredentials, GoogleToken } from "./types.ts";
+import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
-import { Readable } from "stream";
-import { VideoFilesReader } from "./streams.ts";
 
 // TODO: Отсортировать импорты
 // TODO: Разобраться с трайкетчами
@@ -22,7 +22,7 @@ const credentials: GoogleCredentials = JSON.parse(
 );
 
 function isTokenExpired(token: GoogleToken) {
-    const padding = 1000 * 60 * 60 * 5; // 5 hours
+    const padding = secondsToMs(30);
     return (
         token.expiry_date == null || token.expiry_date < Date.now() - padding
     );
@@ -98,7 +98,9 @@ async function getAuthorizedClient(
     return oAuth2Client;
 }
 
-export async function uploadVideoFromDirectory(path: string) {
+export async function uploadVideo(readable: Readable) {
+    console.log("Uploading video...");
+
     google.youtube("v3").videos.insert({
         auth: await getAuthorizedClient(credentials),
         part: ["snippet", "status"],
@@ -114,11 +116,7 @@ export async function uploadVideoFromDirectory(path: string) {
             },
         },
         media: {
-            body: new VideoFilesReader({
-                directory: "./output",
-            }),
+            body: readable,
         },
     });
 }
-
-await uploadVideoFromDirectory("./output");

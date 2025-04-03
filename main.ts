@@ -1,32 +1,31 @@
-import { firefox } from "playwright";
-import { writeFileSync } from "node:fs";
+import { downloadHlsStream } from "./downloader.ts";
+import { grabPlaylistUrl } from "./playlist_grabber.ts";
+import { VideoFilesReader } from "./reader.ts";
+import { uploadVideo } from "./uploader.ts";
+import onExit from "node-cleanup";
+import { prepareDirectory } from "./preparer.ts";
 
-const browser = await firefox.launch();
-const page = await browser.newPage();
+const STREAM_URL = "https://www.twitch.tv/f1ashko";
+const OUTPUT_DIRECTORY = "./output";
+const IS_ROBOT = false;
+const TIME_DOWNLOADING_SECONDS = 30;
+const READING_TIMEOUT = 60;
 
-page.on("response", async (response) => {
-    const url = response.url();
-    const method = response.request().method();
-    if (method === "GET" && url.endsWith(".ts")) {
-        try {
-            const buffer = await response.body();
-            const timestamp = Date.now();
-            writeFileSync(`./output/segment_${timestamp}.ts`, buffer);
+await prepareDirectory(OUTPUT_DIRECTORY, IS_ROBOT);
 
-            // writeFileSync(`./output/segment_out.txt`, String(counter++), {
-            //     flag: "a",
-            // });
-        } catch (e) {
-            if (e instanceof Error && e.message.includes("preflight")) {
-                console.warn("Preflight request error, skipping...");
-            } else {
-                throw e;
-            }
-        }
-    }
+const url = await grabPlaylistUrl(STREAM_URL);
+const downloader = downloadHlsStream(url, {
+    outputDirectory: OUTPUT_DIRECTORY,
+    timeSeconds: TIME_DOWNLOADING_SECONDS,
+});
+onExit((exitCode, signal) => {
+    console.log("killing process: ", downloader.pid);
+    downloader.kill();
 });
 
-await page.goto("https://twitch.tv/dmitry_bale");
-await page.waitForTimeout(60_000); // Playwright's built-in timeout
-
-await browser.close();
+uploadVideo(
+    new VideoFilesReader({
+        directory: OUTPUT_DIRECTORY,
+        readingTimeout: READING_TIMEOUT,
+    })
+);
