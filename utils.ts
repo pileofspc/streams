@@ -1,6 +1,4 @@
-import path from "path";
-import fs from "fs";
-import readline from "readline/promises";
+import mime from "mime-types";
 
 export function nodeInstanceOf<T extends new (...args: any) => Error>(
     value: unknown,
@@ -16,11 +14,19 @@ export function secondsToMs(seconds: number) {
     return 1000 * seconds;
 }
 
-type TimeoutOptions = {
-    shouldReject?: boolean;
-    signal?: AbortSignal;
-};
-export async function timeout(time: number, options?: TimeoutOptions) {
+export function createDataUri(filePathOrExt: string, buffer: Buffer) {
+    const mimeType = mime.lookup(filePathOrExt) || "application/octet-stream";
+    const base64 = buffer.toString("base64");
+    return `data:${mimeType};base64,${base64}`;
+}
+
+export async function timeout(
+    time: number,
+    options?: {
+        shouldReject?: boolean;
+        signal?: AbortSignal;
+    }
+) {
     const shouldReject = options?.shouldReject || false;
 
     return new Promise<void>((res, rej) => {

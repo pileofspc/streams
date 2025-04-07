@@ -1,14 +1,13 @@
 import { exec } from "child_process";
 import path from "path";
+import onExit from "node-cleanup";
 
-type DownloaderOptions = {
-    outputDirectory?: string;
-    timeSeconds?: number;
-};
-
-export function downloadHlsStream(
+export function downloadHlsStreamFromUrl(
     m3u8Url: string,
-    options?: DownloaderOptions
+    options?: {
+        outputDirectory?: string;
+        timeSeconds?: number;
+    }
 ) {
     const config = {
         outputDirectory: "./output",
@@ -18,15 +17,21 @@ export function downloadHlsStream(
 
     console.log("Downloading stream...");
 
-    return exec(
-        `ffmpeg -i ${m3u8Url} -c copy -f segment -segment_time 6 ${
-            config.timeSeconds >= 0
-                ? "-t ".concat(config.timeSeconds.toString())
-                : ""
-        } "${path.resolve(config.outputDirectory, "%05d.ts")}" -y`,
-        {
-            env: process.env,
-            shell: "E:\\Program Files\\Git\\usr\\bin\\bash.exe",
-        }
-    );
+    const cmd = `ffmpeg -i "${m3u8Url}" -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" -c copy -f segment -segment_time 6 ${
+        config.timeSeconds > 0
+            ? "-t ".concat(config.timeSeconds.toString())
+            : ""
+    } "${path.resolve(config.outputDirectory, "%05d.ts")}" -y`;
+
+    const downloader = exec(cmd, {
+        env: process.env,
+        shell: "bash",
+    });
+
+    onExit((exitCode, signal) => {
+        console.log("killing process: ", downloader.pid);
+        downloader.kill();
+    });
+
+    return downloader;
 }

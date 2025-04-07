@@ -5,11 +5,10 @@ import assert from "assert";
 import { google } from "googleapis";
 import { nodeInstanceOf, secondsToMs } from "./utils.ts";
 
-import type { GoogleCredentials, GoogleToken } from "./types.ts";
 import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
+import type { GoogleCredentials, GoogleToken } from "./types.ts";
 
-// TODO: Отсортировать импорты
 // TODO: Разобраться с трайкетчами
 
 const SECRET_PATH = path.resolve(import.meta.dirname, "./secret");
@@ -20,13 +19,6 @@ const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
 const credentials: GoogleCredentials = JSON.parse(
     fs.readFileSync(CREDENTIALS_PATH, { encoding: "utf-8" })
 );
-
-function isTokenExpired(token: GoogleToken) {
-    const padding = secondsToMs(30);
-    return (
-        token.expiry_date == null || token.expiry_date < Date.now() - padding
-    );
-}
 
 async function getNewToken(oAuth2Client: OAuth2Client): Promise<Credentials> {
     const authUrl = oAuth2Client.generateAuthUrl({
@@ -79,16 +71,10 @@ async function getAuthorizedClient(
         const token: GoogleToken = JSON.parse(
             fs.readFileSync(TOKEN_PATH, { encoding: "utf-8" })
         );
-        if (isTokenExpired(token)) {
-            throw new Error("Token expired");
-        }
         oAuth2Client.credentials = token;
     } catch (error) {
         if (nodeInstanceOf(error, Error) && error.code === "ENOENT") {
             console.warn("Token file not found! Getting new token.");
-            await getNewToken(oAuth2Client);
-        } else if ((error as Error).message === "Token expired") {
-            console.warn("Token expired! Getting new token.");
             await getNewToken(oAuth2Client);
         } else {
             throw error;
