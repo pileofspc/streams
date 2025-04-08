@@ -35,10 +35,48 @@ export async function timeout(
         }, time);
 
         if (options?.signal instanceof AbortSignal) {
-            options?.signal.addEventListener("abort", () => {
+            options.signal.addEventListener("abort", () => {
                 clearTimeout(timeoutId);
                 rej();
             });
         }
     });
+}
+
+export type Listener<T extends any[] = unknown[]> = (
+    ...args: T
+) => void | Promise<void>;
+export class Publisher<T extends Record<string, any[]>> {
+    private readonly _eventMap: Map<keyof T, Listener<any[]>[]> = new Map();
+    subscribe<E extends keyof T>(
+        event: E,
+        listener: Listener<T[E]>
+    ): () => void {
+        if (!this._eventMap.get(event)) {
+            this._eventMap.set(event, []);
+        }
+        this._eventMap.get(event)?.push(listener);
+
+        return () => this.unsubscribe(event, listener);
+    }
+    private unsubscribe<E extends keyof T>(
+        event: E,
+        subscriber: Listener<T[E]>
+    ): void {
+        const listenerArray = this._eventMap.get(event);
+        if (listenerArray) {
+            const index = listenerArray.findIndex(
+                (value) => value === subscriber
+            );
+            delete listenerArray[index];
+        }
+    }
+    async notify<E extends keyof T>(event: E, ...data: T[E]): Promise<void> {
+        const listenerArray = this._eventMap.get(event);
+        if (listenerArray) {
+            for (const listener of listenerArray) {
+                if (listener) await listener(...data);
+            }
+        }
+    }
 }

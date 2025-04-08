@@ -1,15 +1,29 @@
 import fs from "fs";
 import path from "path";
 import { Readable, type ReadableOptions } from "stream";
-import { timeout } from "./utils.ts";
+import { Publisher, timeout, type Listener } from "./utils.ts";
 
+type NotificationData = {
+    lastProcessedFile?: string;
+    processedFiles: readonly string[];
+};
+
+type PublisherEventMap = { processed: [processedFilesInfo: NotificationData] };
 export class VideoFilesReader extends Readable {
-    _segmentIndex = -1;
-    _fileName = "";
-    _readingTimeout = 60;
-    _readingRetryInterval = 2;
-    _timeWaiting = 0;
-    _directory: string;
+    private _observer = new Publisher<PublisherEventMap>();
+    private _processedFiles: string[] = [];
+    private _segmentIndex = -1;
+    private _fileName = "";
+    private _readingTimeout = 60;
+    private _readingRetryInterval = 2;
+    private _timeWaiting = 0;
+    private _directory: string;
+
+    processedFiles: readonly string[] = this._processedFiles;
+    get lastProcessedFile() {
+        return this._processedFiles[this._processedFiles.length - 1];
+    }
+
     constructor(
         options: ReadableOptions & {
             directory: string;
@@ -115,11 +129,19 @@ export class VideoFilesReader extends Readable {
         this._segmentIndex = file.segmentIndex;
     }
 
+    private _updateProcessedFiles() {
+        this._processedFiles.push(this._fileName);
+        this._observer.notify("processed", {
+            processedFiles: this.processedFiles,
+            lastProcessedFile: this.lastProcessedFile,
+        });
+    }
+
     async _read(): Promise<void> {
         const files = this._scanDirectory();
         const nextFile = this._getNextFile(files);
 
-        // condition works if the right operand is NaN too
+        // the following condition works if the right operand is NaN too
         if (
             nextFile.segmentIndex <
             this._extractSegmentIndex(files[files.length - 1])
@@ -127,6 +149,9 @@ export class VideoFilesReader extends Readable {
             this._updateCurrentFile(nextFile);
             console.log("PROCESSING FILE: ", this._fileName);
             this.push(this._readFile(this._fileName));
+
+            this._updateProcessedFiles();
+
             this._timeWaiting = 0;
         } else {
             if (this._timeWaiting < this._readingTimeout) {
@@ -136,12 +161,24 @@ export class VideoFilesReader extends Readable {
                 this._timeWaiting += this._readingRetryInterval;
                 this.push("");
             } else {
-                console.log("timeout exceeded. stopping");
+                console.log(
+                    "Timeout exceeded. Processing the last file and then stopping..."
+                );
                 this._updateCurrentFile(nextFile);
                 console.log("PROCESSING FILE: ", this._fileName);
                 this.push(this._readFile(this._fileName));
+
+                this._updateProcessedFiles();
+
                 this.push(null);
             }
         }
+    }
+
+    subscribe<E extends keyof PublisherEventMap>(
+        event: E,
+        listener: Listener<PublisherEventMap[E]>
+    ) {
+        return this._observer.subscribe(event, listener);
     }
 }

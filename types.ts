@@ -17,3 +17,5 @@ export type GoogleToken = {
     token_type?: string | null | undefined;
     expiry_date?: number | null | undefined;
 };
+
+export type SparseArray<T> = (T | undefined)[];
