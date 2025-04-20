@@ -1,17 +1,7 @@
 import { firefox } from "playwright";
-import { timeout } from "./utils.ts";
+import { sleep } from "./utils.ts";
 
-export async function grabPlaylistUrl(
-    url: string,
-    options?: {
-        timeout?: number;
-    }
-) {
-    const config = {
-        timeout: 30_000,
-        ...options,
-    };
-
+export async function grabPlaylistUrl(url: string, { timeout = 30_000 } = {}) {
     console.log("Grabbing playlist URL...");
 
     const playlistUrl = new Promise<string>(async (resolve) => {
@@ -37,6 +27,6 @@ export async function grabPlaylistUrl(
 
     return Promise.race([
         playlistUrl,
-        timeout(config.timeout).then(() => Promise.reject()),
+        sleep(timeout).then(() => Promise.reject()),
     ]);
 }

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { Readable, type ReadableOptions } from "stream";
-import { Publisher, timeout, type Listener } from "./utils.ts";
+import { Publisher, sleep, type Listener } from "./utils.ts";
 
 type NotificationData = readonly string[];
 
@@ -151,7 +151,7 @@ export class VideoFileReader extends Readable {
             if (this._timeWaiting < this._readingTimeout) {
                 console.log("waiting...");
                 console.log("time is:", this._timeWaiting);
-                await timeout(this._readingRetryInterval * 1000);
+                await sleep(this._readingRetryInterval * 1000);
                 this._timeWaiting += this._readingRetryInterval;
                 this.push("");
             } else {
@@ -174,10 +174,5 @@ export class VideoFileReader extends Readable {
         listener: Listener<PublisherEventMap[E]>
     ) {
         return this._observer.subscribe(event, listener);
-    }
-    subscribe2(
-        ...args: Parameters<Publisher<PublisherEventMap>["subscribe"]>
-    ): ReturnType<Publisher<PublisherEventMap>["subscribe"]> {
-        return this._observer.subscribe(...args);
     }
 }

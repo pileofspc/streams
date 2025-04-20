@@ -2,12 +2,13 @@ import fs from "fs";
 import path from "path";
 
 export class FileRotator {
-    private maxFilesToKeep: number = 10;
+    private maxFilesToKeep: number;
     private directory: string;
     private lastDeletedIndex?: number;
     constructor(options: { maxFilesToKeep?: number; directory: string }) {
-        const padding = options?.maxFilesToKeep ?? 0;
-        if (padding < 0) {
+        this.maxFilesToKeep = options.maxFilesToKeep ?? 10;
+
+        if (this.maxFilesToKeep < 0) {
             this.maxFilesToKeep = 0;
             console.warn(
                 "Padding can't be less than zero! Using minimal padding of 0"

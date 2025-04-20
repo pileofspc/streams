@@ -2,10 +2,17 @@ import fs from "fs";
 import path from "path";
 import readline from "readline/promises";
 
-export function deleteAllFilesFromDirectory(directory: string) {
+// TODO: Перевести на промисы
+
+export function deleteAllFilesWithExtensionFromDirectory(
+    directory: string,
+    extension: string
+) {
     const dir = path.resolve(directory);
 
-    const files = fs.readdirSync(directory);
+    const files = fs
+        .readdirSync(directory)
+        .filter((file) => path.extname(file) === extension);
     for (const file of files) {
         const filePath = path.join(dir, file);
         fs.unlinkSync(filePath);
@@ -65,6 +72,6 @@ export async function prepareDirectory(
         }
 
         console.log("Deleting all files in output directory");
-        deleteAllFilesFromDirectory(dir);
+        deleteAllFilesWithExtensionFromDirectory(dir, ".ts");
     }
 }

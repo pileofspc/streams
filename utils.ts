@@ -19,7 +19,7 @@ export function createDataUri(filePathOrExt: string, buffer: Buffer) {
     return `data:${mimeType};base64,${base64}`;
 }
 
-export async function timeout(
+export async function sleep(
     time: number,
     options?: {
         shouldReject?: boolean;

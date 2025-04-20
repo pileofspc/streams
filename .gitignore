@@ -1,9 +1,10 @@
-node_modules
-unused
-output
+node_modules/
+unused/
+output/
 secret/
 .env
 .idea
+myConfig.ts
 
 # Playwright
 /test-results/

@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import readline from "readline/promises";
-import assert from "assert";
 import { google } from "googleapis";
 import { isErrnoException } from "./utils.ts";
 
@@ -9,11 +8,8 @@ import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
 import type { ClientSecret } from "./types.ts";
 
-// TODO: Разобраться с путями
+import config from "./config.ts";
 
-const SECRET_DIRECTORY = path.resolve(import.meta.dirname, "./secret");
-const SECRET_FILEPATH = path.resolve(SECRET_DIRECTORY, "./secret.json");
-const TOKENS_FILEPATH = path.resolve(SECRET_DIRECTORY, "./tokens.json");
 const scopes = ["https://www.googleapis.com/auth/youtube.upload"];
 
 class FileSystemError extends Error {}
@@ -23,11 +19,13 @@ class UploadError extends Error {}
 async function getSecret(): Promise<ClientSecret> {
     try {
         return JSON.parse(
-            await fs.promises.readFile(SECRET_FILEPATH, { encoding: "utf-8" })
+            await fs.promises.readFile(config.secretFilepath, {
+                encoding: "utf-8",
+            })
         );
     } catch (error) {
         throw new FileSystemError(
-            `Failed to read/parse secret file: ${SECRET_FILEPATH}. ${
+            `Failed to read/parse secret file: ${config.secretFilepath}. ${
                 error instanceof Error ? error.message : String(error)
             }`,
             {
@@ -38,16 +36,18 @@ async function getSecret(): Promise<ClientSecret> {
 }
 
 function tokenExists() {
-    return fs.existsSync(TOKENS_FILEPATH);
+    return fs.existsSync(config.tokensFilepath);
 }
 async function getExistingToken(): Promise<Credentials> {
     try {
         return JSON.parse(
-            await fs.promises.readFile(TOKENS_FILEPATH, { encoding: "utf-8" })
+            await fs.promises.readFile(config.tokensFilepath, {
+                encoding: "utf-8",
+            })
         );
     } catch (error) {
         throw new FileSystemError(
-            `Failed to read/parse token file: ${TOKENS_FILEPATH}. \n ${
+            `Failed to read/parse token file: ${config.tokensFilepath}. \n ${
                 error instanceof Error ? error.message : String(error)
             }`
         );
@@ -55,11 +55,13 @@ async function getExistingToken(): Promise<Credentials> {
 }
 async function storeToken(token: Credentials) {
     try {
-        await fs.promises.mkdir(SECRET_DIRECTORY);
+        await fs.promises.mkdir(config.secretDirectory);
     } catch (error) {
         if (!(isErrnoException(error) && error.code === "EEXIST")) {
             throw new FileSystemError(
-                `Failed to create secret directory: ${SECRET_DIRECTORY}. \n ${
+                `Failed to create secret directory: ${
+                    config.secretDirectory
+                }. \n ${
                     error instanceof Error ? error.message : String(error)
                 }`,
                 {
@@ -70,11 +72,14 @@ async function storeToken(token: Credentials) {
     }
 
     try {
-        await fs.promises.writeFile(TOKENS_FILEPATH, JSON.stringify(token));
-        console.log("Token stored to: ", TOKENS_FILEPATH);
+        await fs.promises.writeFile(
+            config.tokensFilepath,
+            JSON.stringify(token)
+        );
+        console.log("Token stored to: ", config.tokensFilepath);
     } catch (error) {
         throw new FileSystemError(
-            `Failed to write to token file: ${TOKENS_FILEPATH}. \n ${
+            `Failed to write to token file: ${config.tokensFilepath}. \n ${
                 error instanceof Error ? error.message : String(error)
             }`,
             {

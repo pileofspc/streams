@@ -1,3 +1,14 @@
+export type Config = {
+    streamUrl: string;
+    outputDirectory: string;
+    autoConfirmClearingOutputDirectory?: boolean;
+    timeDownloadingSeconds?: number;
+    readingTimeout?: number;
+    secretDirectory: string;
+    secretFilepath: string;
+    tokensFilepath: string;
+};
+
 export type ClientSecret = {
     installed: {
         client_id: string;
