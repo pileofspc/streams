@@ -3,106 +3,175 @@ import path from "path";
 import readline from "readline/promises";
 import assert from "assert";
 import { google } from "googleapis";
-import { nodeInstanceOf, secondsToMs } from "./utils.ts";
+import { isErrnoException } from "./utils.ts";
 
 import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
-import type { GoogleCredentials, GoogleToken } from "./types.ts";
+import type { ClientSecret } from "./types.ts";
 
-// TODO: Разобраться с трайкетчами
+// TODO: Разобраться с путями
 
-const SECRET_PATH = path.resolve(import.meta.dirname, "./secret");
-const CREDENTIALS_PATH = path.resolve(SECRET_PATH, "./credentials.json");
-const TOKEN_PATH = path.resolve(SECRET_PATH, "./token.json");
-const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
+const SECRET_DIRECTORY = path.resolve(import.meta.dirname, "./secret");
+const SECRET_FILEPATH = path.resolve(SECRET_DIRECTORY, "./secret.json");
+const TOKENS_FILEPATH = path.resolve(SECRET_DIRECTORY, "./tokens.json");
+const scopes = ["https://www.googleapis.com/auth/youtube.upload"];
 
-const credentials: GoogleCredentials = JSON.parse(
-    fs.readFileSync(CREDENTIALS_PATH, { encoding: "utf-8" })
-);
+class FileSystemError extends Error {}
+class AuthError extends Error {}
+class UploadError extends Error {}
 
-async function getNewToken(oAuth2Client: OAuth2Client): Promise<Credentials> {
-    const authUrl = oAuth2Client.generateAuthUrl({
-        access_type: "offline",
-        scope: SCOPES,
-    });
-    console.log("Authorize this app by visiting this url: ", authUrl);
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-    const code = await rl.question("Enter the code from that page here: ");
-    rl.close();
-
-    return new Promise((res, rej) => {
-        oAuth2Client.getToken(code, (err, token) => {
-            if (err) {
-                console.log("Error while trying to retrieve access token", err);
-                rej();
-            }
-
-            assert(token != null);
-            oAuth2Client.credentials = token;
-            storeToken(token);
-            res(token);
-        });
-    });
-}
-function storeToken(token: GoogleToken) {
+async function getSecret(): Promise<ClientSecret> {
     try {
-        fs.mkdirSync(SECRET_PATH);
-    } catch (error) {
-        if (!(nodeInstanceOf(error, Error) && error.code === "EEXIST")) {
-            throw error;
-        }
-    }
-    fs.writeFileSync(TOKEN_PATH, JSON.stringify(token));
-    console.log("Token stored to: ", TOKEN_PATH);
-}
-async function getAuthorizedClient(
-    credentials: GoogleCredentials
-): Promise<OAuth2Client> {
-    const oAuth2Client = new google.auth.OAuth2(
-        credentials.installed.client_id,
-        credentials.installed.client_secret,
-        credentials.installed.redirect_uris[0]
-    );
-
-    try {
-        const token: GoogleToken = JSON.parse(
-            fs.readFileSync(TOKEN_PATH, { encoding: "utf-8" })
+        return JSON.parse(
+            await fs.promises.readFile(SECRET_FILEPATH, { encoding: "utf-8" })
         );
-        oAuth2Client.credentials = token;
     } catch (error) {
-        if (nodeInstanceOf(error, Error) && error.code === "ENOENT") {
-            console.warn("Token file not found! Getting new token.");
-            await getNewToken(oAuth2Client);
-        } else {
-            throw error;
+        throw new FileSystemError(
+            `Failed to read/parse secret file: ${SECRET_FILEPATH}. ${
+                error instanceof Error ? error.message : String(error)
+            }`,
+            {
+                cause: error,
+            }
+        );
+    }
+}
+
+function tokenExists() {
+    return fs.existsSync(TOKENS_FILEPATH);
+}
+async function getExistingToken(): Promise<Credentials> {
+    try {
+        return JSON.parse(
+            await fs.promises.readFile(TOKENS_FILEPATH, { encoding: "utf-8" })
+        );
+    } catch (error) {
+        throw new FileSystemError(
+            `Failed to read/parse token file: ${TOKENS_FILEPATH}. \n ${
+                error instanceof Error ? error.message : String(error)
+            }`
+        );
+    }
+}
+async function storeToken(token: Credentials) {
+    try {
+        await fs.promises.mkdir(SECRET_DIRECTORY);
+    } catch (error) {
+        if (!(isErrnoException(error) && error.code === "EEXIST")) {
+            throw new FileSystemError(
+                `Failed to create secret directory: ${SECRET_DIRECTORY}. \n ${
+                    error instanceof Error ? error.message : String(error)
+                }`,
+                {
+                    cause: error,
+                }
+            );
         }
     }
 
-    return oAuth2Client;
+    try {
+        await fs.promises.writeFile(TOKENS_FILEPATH, JSON.stringify(token));
+        console.log("Token stored to: ", TOKENS_FILEPATH);
+    } catch (error) {
+        throw new FileSystemError(
+            `Failed to write to token file: ${TOKENS_FILEPATH}. \n ${
+                error instanceof Error ? error.message : String(error)
+            }`,
+            {
+                cause: error,
+            }
+        );
+    }
+
+    return token;
+}
+async function requestNewToken(
+    oAuth2Client: OAuth2Client
+): Promise<Credentials> {
+    try {
+        const authUrl = oAuth2Client.generateAuthUrl({
+            access_type: "offline",
+            scope: scopes,
+        });
+        console.log("Authorize this app by visiting this url: ", authUrl);
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        const code = await rl.question("Enter the code from that page here: ");
+        rl.close();
+
+        const { tokens } = await oAuth2Client.getToken(code);
+        return tokens;
+    } catch (error) {
+        throw new AuthError(
+            `Failed to acquire a new token. \n ${
+                error instanceof Error ? error.message : String(error)
+            }`,
+            { cause: error }
+        );
+    }
+}
+async function acquireToken(oAuth2Client: OAuth2Client) {
+    if (!tokenExists()) {
+        console.warn("Token file not found! Requesting new token.");
+        return storeToken(await requestNewToken(oAuth2Client));
+    }
+
+    return getExistingToken();
+}
+
+async function constructAuthorizedClient() {
+    try {
+        const secret = await getSecret();
+
+        const oAuth2Client = new google.auth.OAuth2(
+            secret.installed.client_id,
+            secret.installed.client_secret,
+            secret.installed.redirect_uris[0]
+        );
+
+        oAuth2Client.setCredentials(await acquireToken(oAuth2Client));
+
+        return oAuth2Client;
+    } catch (error) {
+        throw new AuthError(
+            `Authorization client creation failed. \n ${
+                error instanceof Error ? error.message : String(error)
+            }`,
+            { cause: error }
+        );
+    }
 }
 
 export async function uploadVideo(readable: Readable) {
-    console.log("Uploading video...");
+    try {
+        console.log("Uploading video...");
 
-    google.youtube("v3").videos.insert({
-        auth: await getAuthorizedClient(credentials),
-        part: ["snippet", "status"],
-        requestBody: {
-            snippet: {
-                title: String(Date.now()),
-                description: "Ну да я",
-                defaultLanguage: "ru",
-                defaultAudioLanguage: "ru",
+        await google.youtube("v3").videos.insert({
+            auth: await constructAuthorizedClient(),
+            part: ["snippet", "status"],
+            requestBody: {
+                snippet: {
+                    title: String(Date.now()),
+                    description: "Ну да я",
+                    defaultLanguage: "ru",
+                    defaultAudioLanguage: "ru",
+                },
+                status: {
+                    privacyStatus: "private",
+                },
             },
-            status: {
-                privacyStatus: "private",
+            media: {
+                body: readable,
             },
-        },
-        media: {
-            body: readable,
-        },
-    });
+        });
+    } catch (error) {
+        throw new UploadError(
+            `Video upload failed. ${
+                error instanceof Error ? error.message : String(error)
+            }`,
+            { cause: error }
+        );
+    }
 }

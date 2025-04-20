@@ -1,10 +1,9 @@
 import mime from "mime-types";
 
-export function nodeInstanceOf<T extends new (...args: any) => Error>(
-    value: unknown,
-    errorType: T
-): value is InstanceType<T> & NodeJS.ErrnoException {
-    return value instanceof errorType;
+export function isErrnoException(
+    error: unknown
+): error is Error & NodeJS.ErrnoException {
+    return error instanceof Error;
 }
 
 export function hoursToMs(hours: number) {
@@ -43,9 +42,7 @@ export async function timeout(
     });
 }
 
-export type Listener<T extends any[] = unknown[]> = (
-    ...args: T
-) => void | Promise<void>;
+export type Listener<T extends any[] = unknown[]> = (...args: T) => void;
 export class Publisher<T extends Record<string, any[]>> {
     private readonly _eventMap: Map<keyof T, Listener<any[]>[]> = new Map();
     subscribe<E extends keyof T>(
@@ -71,11 +68,11 @@ export class Publisher<T extends Record<string, any[]>> {
             delete listenerArray[index];
         }
     }
-    async notify<E extends keyof T>(event: E, ...data: T[E]): Promise<void> {
+    async emit<E extends keyof T>(event: E, ...data: T[E]): Promise<void> {
         const listenerArray = this._eventMap.get(event);
         if (listenerArray) {
             for (const listener of listenerArray) {
-                if (listener) await listener(...data);
+                if (listener) listener(...data);
             }
         }
     }

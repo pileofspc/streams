@@ -1,4 +1,4 @@
-export type GoogleCredentials = {
+export type ClientSecret = {
     installed: {
         client_id: string;
         project_id: string;
@@ -8,14 +8,6 @@ export type GoogleCredentials = {
         client_secret: string;
         redirect_uris: string[];
     };
-};
-
-export type GoogleToken = {
-    access_token?: string | undefined | null;
-    refresh_token?: string | undefined | null;
-    scope?: string;
-    token_type?: string | null | undefined;
-    expiry_date?: number | null | undefined;
 };
 
 export type SparseArray<T> = (T | undefined)[];

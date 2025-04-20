@@ -18,17 +18,21 @@ export async function grabPlaylistUrl(
         const browser = await firefox.launch();
         const page = await browser.newPage();
 
-        // closing browser before fully loading a page might error, so need to catch that here
-        await page.goto(url).catch(() => {});
-
         page.on("response", async (response) => {
             const requestUrl = response.url();
             const method = response.request().method();
-            if (method === "GET" && requestUrl.includes(".m3u8")) {
+            if (
+                method === "GET" &&
+                requestUrl.includes(".m3u8") &&
+                !requestUrl.endsWith("m3u8")
+            ) {
                 resolve(requestUrl);
                 await browser.close();
             }
         });
+
+        // closing browser before fully loading a page might error, so need to catch that here
+        await page.goto(url).catch(() => {});
     });
 
     return Promise.race([

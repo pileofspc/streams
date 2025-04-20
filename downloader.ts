@@ -23,10 +23,7 @@ export function downloadHlsStreamFromUrl(
             : ""
     } "${path.resolve(config.outputDirectory, "%05d.ts")}" -y`;
 
-    const downloader = exec(cmd, {
-        env: process.env,
-        shell: "bash",
-    });
+    const downloader = exec(cmd);
 
     onExit((exitCode, signal) => {
         console.log("killing process: ", downloader.pid);
