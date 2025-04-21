@@ -4,7 +4,8 @@ output/
 secret/
 .env
 .idea
-myConfig.ts
+my_config.ts
+config.ts
 
 # Playwright
 /test-results/
