@@ -11,8 +11,8 @@ export class VideoFileReader extends Readable {
     private _processedFiles: string[] = [];
     private _segmentIndex = -1;
     private _fileName = "";
-    private _readingTimeout = 60;
-    private _readingRetryInterval = 2;
+    private _readingTimeout;
+    private _readingRetryInterval;
     private _timeWaiting = 0;
     private _directory: string;
 
@@ -31,44 +31,70 @@ export class VideoFileReader extends Readable {
         super(options);
         this._directory = options.directory;
 
-        if (typeof options.readingTimeout !== "number") {
-            console.warn(
-                `Reading timeout must be a number! Using default timeout of ${this._readingTimeout} seconds`
-            );
-        } else if (
-            typeof options.readingTimeout === "number" &&
-            options.readingTimeout <= 0
-        ) {
-            console.warn(
-                `Reading timeout must be positive! Using default timeout of ${this._readingTimeout} seconds`
-            );
-            return;
-        } else {
-            this._readingTimeout = options.readingTimeout;
-        }
-
-        if (typeof options.readingRetryInterval !== "number") {
-            console.warn(
-                `Retry interval must be a number! Using default interval of ${this._readingRetryInterval} seconds`
-            );
-        } else if (options.readingRetryInterval < 0) {
-            console.warn(
-                `Retry interval must be positive! Using default interval of ${this._readingRetryInterval} seconds`
-            );
-        } else if (options.readingRetryInterval > this._readingTimeout) {
-            console.warn(
-                `Retry interval must be less than readingTimeout! Using default interval of ${this._readingRetryInterval} seconds`
-            );
-        } else {
-            this._readingRetryInterval = options.readingRetryInterval;
-        }
+        this._readingTimeout = this.ensureValidReadingTimeout(
+            options.readingTimeout
+        );
+        this._readingRetryInterval = this.ensureValidRetryInterval(
+            options.readingRetryInterval,
+            this._readingTimeout
+        );
     }
 
-    _extractSegmentIndex(filename?: string) {
+    private ensureValidReadingTimeout(timeout?: number): number {
+        const defaultValue = 60;
+        const minValue = 5;
+        const value = timeout ?? defaultValue;
+
+        if (value <= minValue) {
+            console.warn(
+                `Reading timeout must be at least ${minValue} seconds. Using minimum value: ${minValue}s.`
+            );
+            return minValue;
+        }
+
+        return value;
+    }
+
+    private ensureValidRetryInterval(
+        interval: number | undefined,
+        timeout: number
+    ): number {
+        const defaultInterval = 2;
+        const minInterval = 1;
+        const minDifference = 2;
+
+        if (interval == null) {
+            console.warn(
+                `Retry interval not provided. Using default: ${defaultInterval}s.`
+            );
+            interval = defaultInterval;
+        }
+        if (interval < minInterval) {
+            console.warn(
+                `Retry interval too low (min ${minInterval}s). Using: ${minInterval}s.`
+            );
+            interval = minInterval;
+        }
+        if (timeout - interval <= minDifference) {
+            const maxInterval = timeout - minDifference;
+            interval = maxInterval;
+
+            console.warn(
+                `Current interval is too large. Difference between timeout and interval must be at least ${minDifference} seconds.
+                With timeout of ${timeout}s and interval of ${interval} the difference is ${
+                    timeout - interval
+                }. Using a maximum interval of ${interval}`
+            );
+        }
+
+        return interval;
+    }
+
+    private _extractSegmentIndex(filename?: string) {
         if (filename == null) return NaN;
         return parseInt(filename.match(/\d+/)?.[0]!);
     }
-    _scanDirectory() {
+    private _scanDirectory() {
         const files = fs
             .readdirSync(path.resolve(this._directory))
             .filter((value) => value.endsWith(".ts"))
@@ -88,10 +114,10 @@ export class VideoFileReader extends Readable {
 
         return files;
     }
-    _readFile(filename: string) {
+    private _readFile(filename: string) {
         return fs.readFileSync(path.resolve(this._directory, filename));
     }
-    _getNextFile(files: string[]) {
+    private _getNextFile(files: string[]) {
         for (let i = files.length - 1; i >= 0; i--) {
             const currentSegmentIndex = this._extractSegmentIndex(files[i]);
             const previousSegmentIndex = this._extractSegmentIndex(
@@ -121,7 +147,7 @@ export class VideoFileReader extends Readable {
             segmentIndex: this._segmentIndex,
         };
     }
-    _updateCurrentFile(file: { name: string; segmentIndex: number }) {
+    private _updateCurrentFile(file: { name: string; segmentIndex: number }) {
         this._fileName = file.name;
         this._segmentIndex = file.segmentIndex;
     }
