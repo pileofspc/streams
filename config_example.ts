@@ -8,4 +8,5 @@ export default {
     secretDirectory: "./secret",
     secretFilepath: "./secret/secret.json",
     tokensFilepath: "./secret/tokens.json",
+    webhookPort: 1001,
 } satisfies Config;

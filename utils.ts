@@ -1,5 +1,3 @@
-import mime from "mime-types";
-
 export function isErrnoException(
     error: unknown
 ): error is Error & NodeJS.ErrnoException {
@@ -11,12 +9,6 @@ export function hoursToMs(hours: number) {
 }
 export function secondsToMs(seconds: number) {
     return 1000 * seconds;
-}
-
-export function createDataUri(filePathOrExt: string, buffer: Buffer) {
-    const mimeType = mime.lookup(filePathOrExt) || "application/octet-stream";
-    const base64 = buffer.toString("base64");
-    return `data:${mimeType};base64,${base64}`;
 }
 
 export async function sleep(

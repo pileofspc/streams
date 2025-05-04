@@ -1,14 +1,14 @@
 import fs from "fs";
-import path from "path";
 import readline from "readline/promises";
 import { google } from "googleapis";
-import { isErrnoException } from "./utils.ts";
-
 import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
-import type { ClientSecret } from "./types.ts";
 
-import config from "./config.ts";
+import configuration from "./config.ts";
+import { isErrnoException } from "./utils.ts";
+import type { ClientSecret, Config } from "./types.ts";
+
+const config: Config = configuration;
 
 const scopes = ["https://www.googleapis.com/auth/youtube.upload"];
 

@@ -33,18 +33,18 @@ downloadHlsStreamFromUrl({
     timeLimitSeconds: config.timeDownloadingSeconds,
 });
 
-const fileReader = new VideoFileReader({
-    directory: config.outputDirectory,
-    readingTimeout: config.readingTimeout,
-});
+// const fileReader = new VideoFileReader({
+//     directory: config.outputDirectory,
+//     readingTimeout: config.readingTimeout,
+// });
 
-const fileRotator = new FileRotator({
-    directory: "./output",
-    maxFilesToKeep: 10,
-});
+// const fileRotator = new FileRotator({
+//     directory: "./output",
+//     maxFilesToKeep: 10,
+// });
 
-fileReader.subscribe("processed", (files) => {
-    fileRotator.rotate(files);
-});
+// fileReader.subscribe("processed", (files) => {
+//     fileRotator.rotate(files);
+// });
 
-await uploadVideo(fileReader);
+// await uploadVideo(fileReader);

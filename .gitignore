@@ -2,6 +2,7 @@ node_modules/
 unused/
 output/
 secret/
+temp/
 .env
 .idea
 config.ts

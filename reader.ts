@@ -77,7 +77,6 @@ export class VideoFileReader extends Readable {
         }
         if (timeout - interval <= minDifference) {
             const maxInterval = timeout - minDifference;
-            interval = maxInterval;
 
             console.warn(
                 `Current interval is too large. Difference between timeout and interval must be at least ${minDifference} seconds.
@@ -85,6 +84,8 @@ export class VideoFileReader extends Readable {
                     timeout - interval
                 }. Using a maximum interval of ${interval}`
             );
+
+            interval = maxInterval;
         }
 
         return interval;
