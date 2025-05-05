@@ -1,13 +1,13 @@
 import fs from "fs";
 import path from "path";
 import { Readable, type ReadableOptions } from "stream";
-import { Publisher, sleep, type Listener } from "./utils.ts";
+import { Publisher, sleep, type Listener } from "./utils/utils.ts";
 
 type NotificationData = readonly string[];
 
 type PublisherEventMap = { processed: [processedFilesInfo: NotificationData] };
 export class VideoFileReader extends Readable {
-    private _observer = new Publisher<PublisherEventMap>();
+    observer = new Publisher<PublisherEventMap>();
     private _processedFiles: string[] = [];
     private _segmentIndex = -1;
     private _fileName = "";
@@ -155,7 +155,7 @@ export class VideoFileReader extends Readable {
 
     private _updateProcessedFiles() {
         this._processedFiles.push(this._fileName);
-        this._observer.emit("processed", this.processedFiles);
+        this.observer.emit("processed", this.processedFiles);
     }
 
     async _read(): Promise<void> {
@@ -196,10 +196,10 @@ export class VideoFileReader extends Readable {
         }
     }
 
-    subscribe<E extends keyof PublisherEventMap>(
-        event: E,
-        listener: Listener<PublisherEventMap[E]>
-    ) {
-        return this._observer.subscribe(event, listener);
-    }
+    // subscribe<E extends keyof PublisherEventMap>(
+    //     event: E,
+    //     listener: Listener<PublisherEventMap[E]>
+    // ) {
+    //     return this._observer.subscribe(event, listener);
+    // }
 }

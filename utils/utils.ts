@@ -34,8 +34,15 @@ export async function sleep(
     });
 }
 
-export type Listener<T extends any[] = unknown[]> = (...args: T) => void;
-export class Publisher<T extends Record<string, any[]>> {
+type ArrayRestVoid<T extends any[]> = [...T, ...void[]];
+type EventMap = { [key: string]: any[] };
+type DefaultPayload = void[];
+type DefaultEventMap = {};
+
+export type Listener<T extends any[] = any[]> = (
+    ...args: ArrayRestVoid<T>
+) => void;
+export class Publisher<T extends EventMap = DefaultEventMap> {
     private readonly _eventMap: Map<keyof T, Listener<any[]>[]> = new Map();
     subscribe<E extends keyof T>(
         event: E,
@@ -67,5 +74,14 @@ export class Publisher<T extends Record<string, any[]>> {
                 if (listener) listener(...data);
             }
         }
+    }
+}
+export class SimplePublisher<T extends any[] = DefaultPayload> {
+    private publisher = new Publisher<{ event: [...T] }>();
+    subscribe(listener: Listener<T>) {
+        return this.publisher.subscribe("event", listener);
+    }
+    emit(...data: T) {
+        return this.publisher.emit("event", ...data);
     }
 }

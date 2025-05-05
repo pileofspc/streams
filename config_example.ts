@@ -6,7 +6,9 @@ export default {
     autoConfirmClearingOutputDirectory: false,
     readingTimeout: 120,
     secretDirectory: "./secret",
-    secretFilepath: "./secret/secret.json",
     tokensFilepath: "./secret/tokens.json",
+    youtubeSecretFilepath: "./secret/youtube_secret.json",
+    twitchSecretFilepath: "./secret/twitch_secret.json",
+    webhookRoute: "/webhook",
     webhookPort: 1001,
 } satisfies Config;

@@ -7,9 +7,11 @@ export type Config = {
     timeDownloadingSeconds?: number;
     readingTimeout?: number;
     secretDirectory: string;
-    secretFilepath: string;
+    youtubeSecretFilepath: string;
     tokensFilepath: string;
     webhookPort: number;
+    webhookRoute: string;
+    twitchSecretFilepath: string;
 };
 
 export type ClientSecret = {

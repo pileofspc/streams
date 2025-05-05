@@ -5,29 +5,26 @@ import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
 
 import configuration from "./config.ts";
-import { isErrnoException } from "./utils.ts";
+import { isErrnoException } from "./utils/utils.ts";
 import type { ClientSecret, Config } from "./types.ts";
+import { AuthError, FileSystemError, NetworkError } from "./utils/errors.ts";
 
 const config: Config = configuration;
 
 const scopes = ["https://www.googleapis.com/auth/youtube.upload"];
 
-class FileSystemError extends Error {}
-class AuthError extends Error {}
-class UploadError extends Error {}
-
 async function getSecret(): Promise<ClientSecret> {
     try {
         return JSON.parse(
-            await fs.promises.readFile(config.secretFilepath, {
+            await fs.promises.readFile(config.youtubeSecretFilepath, {
                 encoding: "utf-8",
             })
         );
     } catch (error) {
         throw new FileSystemError(
-            `Failed to read/parse secret file: ${config.secretFilepath}. ${
-                error instanceof Error ? error.message : String(error)
-            }`,
+            `Failed to read/parse secret file: ${
+                config.youtubeSecretFilepath
+            }. ${error instanceof Error ? error.message : String(error)}`,
             {
                 cause: error,
             }
@@ -110,7 +107,7 @@ async function requestNewToken(
         return tokens;
     } catch (error) {
         throw new AuthError(
-            `Failed to acquire a new token. \n ${
+            `Failed to acquire a new token from youtube. \n ${
                 error instanceof Error ? error.message : String(error)
             }`,
             { cause: error }
@@ -172,7 +169,7 @@ export async function uploadVideo(readable: Readable) {
             },
         });
     } catch (error) {
-        throw new UploadError(
+        throw new NetworkError(
             `Video upload failed. ${
                 error instanceof Error ? error.message : String(error)
             }`,

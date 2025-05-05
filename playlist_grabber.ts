@@ -1,5 +1,5 @@
 import { firefox } from "playwright";
-import { sleep } from "./utils.ts";
+import { sleep } from "./utils/utils.ts";
 
 export async function grabPlaylistUrl(url: string, { timeout = 30_000 } = {}) {
     console.log("Grabbing playlist URL...");

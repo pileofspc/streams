@@ -9,6 +9,7 @@ import { VideoFileReader } from "./reader.ts";
 import { uploadVideo } from "./uploader.ts";
 import { prepareDirectory } from "./preparer.ts";
 import { FileRotator } from "./rotator.ts";
+import { streamStartNotifier } from "./stream_start_notifier.ts";
 
 // this is needed because there might be type errors if config is defined using 'satisfies' keyword rather than assigning
 // type like this: const config: Config = {// config here}
@@ -21,30 +22,51 @@ if (path.resolve(config.outputDirectory) === path.resolve(process.cwd())) {
     throw new Error("Can't use current working directory as output directory!");
 }
 
-await prepareDirectory(
-    config.outputDirectory,
-    config.autoConfirmClearingOutputDirectory
-);
+async function start() {
+    await prepareDirectory(
+        config.outputDirectory,
+        config.autoConfirmClearingOutputDirectory
+    );
 
-const playlistUrl = await grabPlaylistUrl(config.streamUrl);
-downloadHlsStreamFromUrl({
-    m3u8Url: playlistUrl,
-    outputDirectory: config.outputDirectory,
-    timeLimitSeconds: config.timeDownloadingSeconds,
+    const playlistUrl = await grabPlaylistUrl(config.streamUrl);
+    downloadHlsStreamFromUrl({
+        m3u8Url: playlistUrl,
+        outputDirectory: config.outputDirectory,
+        timeLimitSeconds: config.timeDownloadingSeconds,
+    });
+
+    const fileReader = new VideoFileReader({
+        directory: config.outputDirectory,
+        readingTimeout: config.readingTimeout,
+    });
+
+    const fileRotator = new FileRotator({
+        directory: config.outputDirectory,
+        maxFilesToKeep: 10,
+    });
+
+    fileReader.observer.subscribe("processed", (files) => {
+        fileRotator.rotate(files);
+    });
+
+    await uploadVideo(fileReader);
+}
+
+function isAllowedToStart() {
+    // TODO: implement later
+    return true;
+}
+
+streamStartNotifier.subscribe((notification) => {
+    console.log(
+        `Twitch stream at ${
+            config.streamUrl
+        } started at ${new Date().toUTCString()}.`
+    );
+    if (isAllowedToStart()) {
+        console.log("Trying to upload stream to youtube in real time.");
+        // start();
+        console.log("waiting 15 seconds before terminating");
+        setTimeout(() => 2, 15000);
+    }
 });
-
-// const fileReader = new VideoFileReader({
-//     directory: config.outputDirectory,
-//     readingTimeout: config.readingTimeout,
-// });
-
-// const fileRotator = new FileRotator({
-//     directory: "./output",
-//     maxFilesToKeep: 10,
-// });
-
-// fileReader.subscribe("processed", (files) => {
-//     fileRotator.rotate(files);
-// });
-
-// await uploadVideo(fileReader);

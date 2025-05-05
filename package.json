@@ -5,8 +5,7 @@
     "main": "main.ts",
     "type": "module",
     "scripts": {
-        "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts",
-        "webhook": "node --experimental-transform-types --abort_on_uncaught_exception ./webhook.ts"
+        "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts"
     },
     "author": "",
     "license": "ISC",
