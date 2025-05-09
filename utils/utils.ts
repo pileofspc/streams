@@ -1,3 +1,6 @@
+import crypto from "crypto";
+import fsp from "fs/promises";
+
 export function isErrnoException(
     error: unknown
 ): error is Error & NodeJS.ErrnoException {
@@ -84,4 +87,17 @@ export class SimplePublisher<T extends any[] = DefaultPayload> {
     emit(...data: T) {
         return this.publisher.emit("event", ...data);
     }
+}
+
+export function generateRandom32ByteString() {
+    return crypto.randomBytes(32).toString("hex");
+}
+
+export function extractURLPathname(url: string) {
+    return new URL(url).pathname;
+}
+
+export async function getSecret<T>(path: string): Promise<T> {
+    const secret = await fsp.readFile(path, { encoding: "utf-8" });
+    return JSON.parse(secret);
 }

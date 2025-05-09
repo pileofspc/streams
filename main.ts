@@ -3,13 +3,13 @@ import path from "path";
 import configuration from "./config.ts";
 import type { Config } from "./types.ts";
 
-import { downloadHlsStreamFromUrl } from "./downloader.ts";
-import { grabPlaylistUrl } from "./playlist_grabber.ts";
-import { VideoFileReader } from "./reader.ts";
-import { uploadVideo } from "./uploader.ts";
-import { prepareDirectory } from "./preparer.ts";
-import { FileRotator } from "./rotator.ts";
-import { streamStartNotifier } from "./stream_start_notifier.ts";
+import { streamStartNotifier } from "./notifier/stream_start_notifier.ts";
+import { downloadHlsStreamFromUrl } from "./grabber/downloader.ts";
+import { grabPlaylistUrl } from "./grabber/playlist_grabber.ts";
+import { VideoFileReader } from "./uploader/reader.ts";
+import { uploadVideo } from "./uploader/uploader.ts";
+import { cleanDirectory } from "./utils/cleaner.ts";
+import { FileRotator } from "./utils/rotator.ts";
 
 // this is needed because there might be type errors if config is defined using 'satisfies' keyword rather than assigning
 // type like this: const config: Config = {// config here}
@@ -23,10 +23,10 @@ if (path.resolve(config.outputDirectory) === path.resolve(process.cwd())) {
 }
 
 async function start() {
-    await prepareDirectory(
-        config.outputDirectory,
-        config.autoConfirmClearingOutputDirectory
-    );
+    await cleanDirectory({
+        directory: config.outputDirectory,
+        autoConfirm: config.autoConfirmClearingOutputDirectory,
+    });
 
     const playlistUrl = await grabPlaylistUrl(config.streamUrl);
     downloadHlsStreamFromUrl({

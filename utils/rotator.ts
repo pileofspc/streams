@@ -5,25 +5,25 @@ export class FileRotator {
     private maxFilesToKeep: number;
     private directory: string;
     private lastDeletedIndex?: number;
-    constructor(options: { maxFilesToKeep?: number; directory: string }) {
+    constructor(options: { directory: string; maxFilesToKeep?: number }) {
         this.maxFilesToKeep = options.maxFilesToKeep ?? 10;
 
         if (this.maxFilesToKeep < 0) {
             this.maxFilesToKeep = 0;
             console.warn(
-                "Padding can't be less than zero! Using minimal padding of 0"
+                "Maximum files to keep amount cannot be less than 0! Using 0 instead."
             );
         }
         this.directory = options.directory;
     }
-    rotate(files: readonly string[]) {
+    rotate(allFiles: readonly string[]) {
         const startIndex = this.lastDeletedIndex
             ? this.lastDeletedIndex + 1
             : 0;
-        const endIndex = files.length - this.maxFilesToKeep;
+        const endIndex = allFiles.length - this.maxFilesToKeep;
+
         for (let i = startIndex; i < endIndex; i++) {
-            const item = files[i];
-            const file = path.resolve(this.directory, item ?? "");
+            const file = path.resolve(this.directory, allFiles[i] ?? "");
             fs.promises.unlink(file).catch((reason) => {
                 console.warn(
                     "\n",

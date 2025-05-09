@@ -7,10 +7,10 @@ import type {
     Config,
     TwitchExpressRequest,
     TwitchNotification,
-} from "./types.ts";
+} from "../types.ts";
 
-import configuration from "./config.ts";
-import { SimplePublisher } from "./utils/utils.ts";
+import configuration from "../config.ts";
+import { SimplePublisher } from "../utils/utils.ts";
 const config: Config = configuration;
 
 const app = express();
@@ -47,15 +47,15 @@ function getHmac(secret: string, message: string) {
     return crypto.createHmac("sha256", secret).update(message).digest("hex");
 }
 
-function verifyMessage(hmac: string, verifySignature: string) {
+function verifyMessage(hmac: string, verificationSignature: string) {
     return crypto.timingSafeEqual(
         Buffer.from(hmac),
-        Buffer.from(verifySignature)
+        Buffer.from(verificationSignature)
     );
 }
 
 app.post(
-    config.webhookRoute,
+    config.webhookURL,
     express.raw({
         // Need raw message body for signature verification
         type: "application/json",

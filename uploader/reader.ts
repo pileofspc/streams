@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { Readable, type ReadableOptions } from "stream";
-import { Publisher, sleep, type Listener } from "./utils/utils.ts";
+import { Publisher, sleep } from "../utils/utils.ts";
 
 type NotificationData = readonly string[];
-
 type PublisherEventMap = { processed: [processedFilesInfo: NotificationData] };
+
 export class VideoFileReader extends Readable {
     observer = new Publisher<PublisherEventMap>();
     private _processedFiles: string[] = [];
@@ -195,11 +195,4 @@ export class VideoFileReader extends Readable {
             }
         }
     }
-
-    // subscribe<E extends keyof PublisherEventMap>(
-    //     event: E,
-    //     listener: Listener<PublisherEventMap[E]>
-    // ) {
-    //     return this._observer.subscribe(event, listener);
-    // }
 }

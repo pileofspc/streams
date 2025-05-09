@@ -4,10 +4,10 @@ import { google } from "googleapis";
 import type { Readable } from "stream";
 import type { Credentials, OAuth2Client } from "google-auth-library";
 
-import configuration from "./config.ts";
-import { isErrnoException } from "./utils/utils.ts";
-import type { ClientSecret, Config } from "./types.ts";
-import { AuthError, FileSystemError, NetworkError } from "./utils/errors.ts";
+import configuration from "../config.ts";
+import { isErrnoException } from "../utils/utils.ts";
+import type { ClientSecret, Config } from "../types.ts";
+import { AuthError, FileSystemError, NetworkError } from "../utils/errors.ts";
 
 const config: Config = configuration;
 

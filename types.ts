@@ -10,8 +10,9 @@ export type Config = {
     youtubeSecretFilepath: string;
     tokensFilepath: string;
     webhookPort: number;
-    webhookRoute: string;
+    webhookURL: string;
     twitchSecretFilepath: string;
+    twitchSubscriptionEndpoint: string;
 };
 
 export type ClientSecret = {

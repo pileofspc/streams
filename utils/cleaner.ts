@@ -6,14 +6,25 @@ import readline from "readline/promises";
 
 export function deleteAllFilesWithExtensionFromDirectory(
     directory: string,
-    extension: string
+    pattern: string
 ) {
     const dir = path.resolve(directory);
 
-    const files = fs
-        .readdirSync(directory)
-        .filter((file) => path.extname(file) === extension);
-    for (const file of files) {
+    const regex = new RegExp(
+        `^${pattern
+            .replace(/\./g, "\\.")
+            .replace(/\*/g, ".*")
+            .replace(/\?/g, ".")}$`,
+        "i"
+    );
+
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+    const filesToDelete = entries
+        .filter((entry) => entry.isFile() && regex.test(entry.name))
+        .map((entry) => entry.name);
+
+    for (const file of filesToDelete) {
         const filePath = path.join(dir, file);
         fs.unlinkSync(filePath);
     }
@@ -42,19 +53,24 @@ export async function getTotalSize(fullFilepaths: string[]) {
     return sum.toFixed(2);
 }
 
-export async function prepareDirectory(
-    directory: string,
-    autoConfirm?: boolean
-) {
-    console.log("Checking if specified output directory is empty");
-    const dir = path.resolve(directory);
+export async function cleanDirectory(options: {
+    directory: string;
+    autoConfirm?: boolean;
+    pattern?: string;
+}) {
+    const pattern = options.pattern ?? ".*";
+
+    console.log(
+        `Checking if specified directory contains files matching this pattern: ${pattern}`
+    );
+    const dir = path.resolve(options.directory);
     const files = fs
         .readdirSync(dir)
-        .map((file) => path.resolve(directory, file));
+        .map((file) => path.resolve(options.directory, file));
     if (files.length > 0) {
-        console.log("Specified directory is not empty");
+        console.log(`Specified directory contains some ${pattern} files`);
 
-        if (!autoConfirm) {
+        if (!options.autoConfirm) {
             const isConfirmed = await confirmAction(
                 `Confirm deleting all files (${
                     files.length
@@ -71,7 +87,9 @@ export async function prepareDirectory(
             }
         }
 
-        console.log("Deleting all files in output directory");
-        deleteAllFilesWithExtensionFromDirectory(dir, ".ts");
+        console.log(
+            `Deleting all files in specified directory that match this pattern: ${pattern}`
+        );
+        deleteAllFilesWithExtensionFromDirectory(dir, pattern);
     }
 }

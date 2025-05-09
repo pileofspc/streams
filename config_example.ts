@@ -9,6 +9,8 @@ export default {
     tokensFilepath: "./secret/tokens.json",
     youtubeSecretFilepath: "./secret/youtube_secret.json",
     twitchSecretFilepath: "./secret/twitch_secret.json",
-    webhookRoute: "/webhook",
+    webhookURL: "/webhook",
     webhookPort: 1001,
+    twitchSubscriptionEndpoint:
+        "https://api.twitch.tv/helix/eventsub/subscriptions",
 } satisfies Config;
