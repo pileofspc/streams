@@ -1,7 +1,9 @@
-import fsp from "fs/promises";
 import assert from "assert";
 import crypto from "crypto";
 import express from "express";
+
+import configuration from "../config.ts";
+import { getSecret, SimplePublisher } from "../utils/utils.ts";
 
 import type {
     Config,
@@ -9,14 +11,15 @@ import type {
     TwitchNotification,
 } from "../types.ts";
 
-import configuration from "../config.ts";
-import { SimplePublisher } from "../utils/utils.ts";
 const config: Config = configuration;
 
 const app = express();
 export const streamStartNotifier = new SimplePublisher<[TwitchNotification]>();
 
-const PORT = config.webhookPort;
+const PORT = new URL(config.webhookURL).port || 443;
+const WEBHOOK_URL = new URL(config.webhookURL).pathname;
+const SECRET = await getSecret<string>(config.twitchSecretFilepath);
+
 const TWITCH_MESSAGE_ID = "twitch-eventsub-message-id" as const;
 const TWITCH_MESSAGE_TIMESTAMP = "twitch-eventsub-message-timestamp" as const;
 const TWITCH_MESSAGE_SIGNATURE = "twitch-eventsub-message-signature" as const;
@@ -25,13 +28,6 @@ const MESSAGE_TYPE_VERIFICATION = "webhook_callback_verification" as const;
 const MESSAGE_TYPE_NOTIFICATION = "notification" as const;
 const MESSAGE_TYPE_REVOCATION = "revocation" as const;
 const HMAC_PREFIX = "sha256=" as const;
-const SECRET = await getSecret();
-
-async function getSecret(): Promise<string> {
-    return JSON.parse(
-        await fsp.readFile(config.twitchSecretFilepath, { encoding: "utf-8" })
-    );
-}
 
 function getHmacMessage(request: TwitchExpressRequest) {
     const messageId = request.headers[TWITCH_MESSAGE_ID];
@@ -55,7 +51,7 @@ function verifyMessage(hmac: string, verificationSignature: string) {
 }
 
 app.post(
-    config.webhookURL,
+    WEBHOOK_URL,
     express.raw({
         // Need raw message body for signature verification
         type: "application/json",
@@ -66,15 +62,10 @@ app.post(
 
         let message = getHmacMessage(req);
         let hmac = HMAC_PREFIX + getHmac(SECRET, message);
-        const isVerified = body && signature && verifyMessage(hmac, signature);
+        const isVerified =
+            !!body && !!signature && verifyMessage(hmac, signature);
 
         if (!isVerified) {
-            console.log("403");
-            console.log("signature is this: ", signature);
-            console.log("body is this: ", body);
-            console.log("hmac is this: ", hmac);
-            console.log("message is this: ", message);
-
             res.sendStatus(403);
             return;
         }
@@ -84,9 +75,9 @@ app.post(
 
         switch (req.headers[MESSAGE_TYPE]) {
             case MESSAGE_TYPE_NOTIFICATION:
+                res.sendStatus(204);
                 console.log(`Event type: ${notification.subscription.type}`);
                 console.log(JSON.stringify(notification.event, null, 4));
-                res.sendStatus(204);
 
                 streamStartNotifier.emit(notification);
 

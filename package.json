@@ -6,8 +6,7 @@
     "type": "module",
     "scripts": {
         "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts",
-        "request": "node --experimental-transform-types ./utils/coolFetch.ts",
-        "generate": "node --experimental-transform-types ./generate_cringe.ts"
+        "request": "node --experimental-transform-types ./utils/coolFetch.ts"
     },
     "author": "",
     "license": "ISC",

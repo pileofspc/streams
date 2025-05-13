@@ -1,12 +1,12 @@
 import configuration from "../config.ts";
 import type { Config } from "../types.ts";
-import { extractURLPathname, getSecret } from "../utils/utils.ts";
+import { getSecret } from "../utils/utils.ts";
 import { authorize } from "./auth.ts";
 
 const config: Config = configuration;
 
 function getTwitchUserId(streamUrl: string) {
-    const pathname = extractURLPathname(streamUrl);
+    const pathname = new URL(streamUrl).pathname;
     const parts = pathname.split("/").filter(Boolean);
     return parts[0] ?? "";
 }

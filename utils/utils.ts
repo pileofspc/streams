@@ -93,10 +93,6 @@ export function generateRandom32ByteString() {
     return crypto.randomBytes(32).toString("hex");
 }
 
-export function extractURLPathname(url: string) {
-    return new URL(url).pathname;
-}
-
 export async function getSecret<T>(path: string): Promise<T> {
     const secret = await fsp.readFile(path, { encoding: "utf-8" });
     return JSON.parse(secret);

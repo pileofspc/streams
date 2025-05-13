@@ -1,12 +1,8 @@
 import { google } from "googleapis";
 import type { Readable } from "stream";
 
-import configuration from "../config.ts";
-import type { Config } from "../types.ts";
 import { NetworkError } from "../utils/errors.ts";
 import { authorize } from "./auth.ts";
-
-const config: Config = configuration;
 
 export async function uploadVideo(readable: Readable) {
     try {
