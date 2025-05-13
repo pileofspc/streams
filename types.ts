@@ -13,9 +13,11 @@ export type Config = {
     webhookURL: string;
     twitchSecretFilepath: string;
     twitchSubscriptionEndpoint: string;
+    twitchAppIdFilepath: string;
+    twitchOAuthEndpoint: string;
 };
 
-export type ClientSecret = {
+export type YoutubeClientSecret = {
     installed: {
         client_id: string;
         project_id: string;
@@ -25,6 +27,12 @@ export type ClientSecret = {
         client_secret: string;
         redirect_uris: string[];
     };
+};
+
+export type TwitchAccessToken = {
+    access_token: string;
+    expires_in: number;
+    token_type: "bearer";
 };
 
 export type TwitchNotification = {

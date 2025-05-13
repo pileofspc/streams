@@ -101,3 +101,16 @@ export async function getSecret<T>(path: string): Promise<T> {
     const secret = await fsp.readFile(path, { encoding: "utf-8" });
     return JSON.parse(secret);
 }
+
+export function wrapFetchWithAuth(token: string) {
+    return ((...args) => {
+        let init = args[1];
+        if (init) {
+            init.headers = new Headers({
+                ...init.headers,
+                Authorization: `Bearer ${token}`,
+            });
+        }
+        return fetch(...args);
+    }) as typeof fetch;
+}
