@@ -1,9 +1,15 @@
-import assert from "assert";
-import crypto from "crypto";
 import express from "express";
+import assert from "assert";
+import { asyncExitHook } from "exit-hook";
 
-import configuration from "../config.ts";
 import { getSecret, SimplePublisher } from "../utils/utils.ts";
+import { authorize } from "./auth.ts";
+import {
+    requestSubscription,
+    revokeSubscription,
+} from "./webhook_subscriptions.ts";
+import { getHmac, getHmacMessage, verifyMessage } from "./verification.ts";
+import { shouldProcessMessage } from "./deduplication.ts";
 
 import type {
     Config,
@@ -11,14 +17,8 @@ import type {
     TwitchNotification,
 } from "../types.ts";
 
+import configuration from "../config.ts";
 const config: Config = configuration;
-
-const app = express();
-export const streamStartNotifier = new SimplePublisher<[TwitchNotification]>();
-
-const PORT = new URL(config.webhookURL).port || 443;
-const WEBHOOK_URL = new URL(config.webhookURL).pathname;
-const SECRET = await getSecret<string>(config.twitchSecretFilepath);
 
 const TWITCH_MESSAGE_ID = "twitch-eventsub-message-id" as const;
 const TWITCH_MESSAGE_TIMESTAMP = "twitch-eventsub-message-timestamp" as const;
@@ -27,87 +27,104 @@ const MESSAGE_TYPE = "twitch-eventsub-message-type" as const;
 const MESSAGE_TYPE_VERIFICATION = "webhook_callback_verification" as const;
 const MESSAGE_TYPE_NOTIFICATION = "notification" as const;
 const MESSAGE_TYPE_REVOCATION = "revocation" as const;
-const HMAC_PREFIX = "sha256=" as const;
 
-function getHmacMessage(request: TwitchExpressRequest) {
-    const messageId = request.headers[TWITCH_MESSAGE_ID];
-    const timestamp = request.headers[TWITCH_MESSAGE_TIMESTAMP];
-    const body = request.body;
+const app = express();
+const port = new URL(config.webhookURL).port || 443;
+const webhook_url = new URL(config.webhookURL).pathname;
+const secret = await getSecret<string>(config.twitchSecretFilepath);
+let isListening = false;
+let subscriptionId: string;
+export const notifier = new SimplePublisher<[TwitchNotification]>();
 
-    assert(messageId && timestamp && body);
-
-    return messageId + timestamp + body;
-}
-
-function getHmac(secret: string, message: string) {
-    return crypto.createHmac("sha256", secret).update(message).digest("hex");
-}
-
-function verifyMessage(hmac: string, verificationSignature: string) {
-    return crypto.timingSafeEqual(
-        Buffer.from(hmac),
-        Buffer.from(verificationSignature)
-    );
-}
-
-app.post(
-    WEBHOOK_URL,
-    express.raw({
-        // Need raw message body for signature verification
-        type: "application/json",
-    }),
-    async (req: TwitchExpressRequest, res) => {
-        const signature = req.headers[TWITCH_MESSAGE_SIGNATURE];
-        const body = req.body;
-
-        let message = getHmacMessage(req);
-        let hmac = HMAC_PREFIX + getHmac(SECRET, message);
-        const isVerified =
-            !!body && !!signature && verifyMessage(hmac, signature);
-
-        if (!isVerified) {
-            res.sendStatus(403);
-            return;
-        }
-
-        console.log("signatures match");
-        let notification: TwitchNotification = JSON.parse(body);
-
-        switch (req.headers[MESSAGE_TYPE]) {
-            case MESSAGE_TYPE_NOTIFICATION:
-                res.sendStatus(204);
-                console.log(`Event type: ${notification.subscription.type}`);
-                console.log(JSON.stringify(notification.event, null, 4));
-
-                streamStartNotifier.emit(notification);
-
-                break;
-            case MESSAGE_TYPE_VERIFICATION:
-                res.set("Content-Type", "text/plain")
-                    .status(200)
-                    .send(notification.challenge);
-                break;
-            case MESSAGE_TYPE_REVOCATION:
-                res.sendStatus(204);
-                console.log(
-                    `${notification.subscription.type} notifications revoked!`
-                );
-                console.log(`reason: ${notification.subscription.status}`);
-                console.log(
-                    `condition: ${JSON.stringify(
-                        notification.subscription.condition,
-                        null,
-                        4
-                    )}`
-                );
-                break;
-            default:
-                res.sendStatus(204);
-                console.log(
-                    `Unknown message type: ${req.headers[MESSAGE_TYPE]}`
-                );
-        }
+export async function startListening() {
+    if (isListening) {
+        console.log("Already listening!");
+        return;
     }
-);
+    isListening = true;
 
-app.listen(PORT);
+    app.post(
+        webhook_url,
+        express.raw({
+            // Need raw message body for signature verification
+            type: "application/json",
+        }),
+        async (req: TwitchExpressRequest, res) => {
+            const signature = req.headers[TWITCH_MESSAGE_SIGNATURE];
+            const messageId = req.headers[TWITCH_MESSAGE_ID];
+            const timestamp = req.headers[TWITCH_MESSAGE_TIMESTAMP];
+            const body = req.body;
+
+            assert(messageId && timestamp && body);
+
+            let message = getHmacMessage(messageId, timestamp, body);
+            const isVerified =
+                !!body &&
+                !!signature &&
+                !!messageId &&
+                verifyMessage(getHmac(secret, message), signature);
+
+            if (!isVerified) {
+                res.sendStatus(403);
+                return;
+            }
+            if (!shouldProcessMessage(messageId)) {
+                res.sendStatus(200);
+                return;
+            }
+
+            console.log("signatures match");
+            let notification: TwitchNotification = JSON.parse(body);
+
+            switch (req.headers[MESSAGE_TYPE]) {
+                case MESSAGE_TYPE_NOTIFICATION:
+                    res.sendStatus(204);
+                    console.log(
+                        `Event type: ${notification.subscription.type}`
+                    );
+                    console.log(JSON.stringify(notification, null, 4));
+
+                    notifier.emit(notification);
+
+                    break;
+                case MESSAGE_TYPE_VERIFICATION:
+                    res.set("Content-Type", "text/plain")
+                        .status(200)
+                        .send(notification.challenge);
+                    break;
+                case MESSAGE_TYPE_REVOCATION:
+                    res.sendStatus(204);
+                    console.log(
+                        `${notification.subscription.type} notifications revoked!`
+                    );
+                    console.log(`reason: ${notification.subscription.status}`);
+                    console.log(
+                        `condition: ${JSON.stringify(
+                            notification.subscription.condition,
+                            null,
+                            4
+                        )}`
+                    );
+                    break;
+                default:
+                    res.sendStatus(204);
+                    console.log(
+                        `Unknown message type: ${req.headers[MESSAGE_TYPE]}`
+                    );
+            }
+        }
+    );
+
+    app.listen(port);
+
+    subscriptionId = (await requestSubscription(await authorize())).id;
+}
+
+asyncExitHook(
+    async (signal) => {
+        if (subscriptionId) {
+            await revokeSubscription(subscriptionId, await authorize());
+        }
+    },
+    { wait: 10_000 }
+);

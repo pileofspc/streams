@@ -19,9 +19,9 @@
     "dependencies": {
         "@playwright/test": "^1.50.1",
         "cors": "^2.8.5",
+        "exit-hook": "^4.0.0",
         "express": "^5.1.0",
         "google-auth-library": "^9.15.1",
-        "googleapis": "^144.0.0",
-        "node-cleanup": "^2.1.2"
+        "googleapis": "^144.0.0"
     }
 }

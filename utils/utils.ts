@@ -98,13 +98,13 @@ export async function getSecret<T>(path: string): Promise<T> {
     return JSON.parse(secret);
 }
 
-export function wrapFetchWithAuth(token: string) {
+export function wrapFetchWithHeaderOverrides(headers: Headers) {
     return ((...args) => {
         let init = args[1];
         if (init) {
             init.headers = new Headers({
                 ...init.headers,
-                Authorization: `Bearer ${token}`,
+                ...headers,
             });
         }
         return fetch(...args);

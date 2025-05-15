@@ -1,6 +1,6 @@
 import config from "../config.ts";
 import type { TwitchAccessToken } from "../types.ts";
-import { getSecret, wrapFetchWithAuth } from "../utils/utils.ts";
+import { getSecret, wrapFetchWithHeaderOverrides } from "../utils/utils.ts";
 
 async function getAccessToken(): Promise<string> {
     const params = new URLSearchParams();
@@ -25,5 +25,10 @@ async function getAccessToken(): Promise<string> {
 
 export type AuthorizedClient = typeof fetch;
 export async function authorize(): Promise<AuthorizedClient> {
-    return wrapFetchWithAuth(await getAccessToken());
+    return wrapFetchWithHeaderOverrides(
+        new Headers({
+            Authorization: `Bearer ${await getAccessToken()}`,
+            "Client-Id": await getSecret<string>(config.twitchAppIdFilepath),
+        })
+    );
 }

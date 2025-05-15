@@ -11,9 +11,11 @@ export type Config = {
     tokensFilepath: string;
     webhookURL: string;
     twitchSecretFilepath: string;
-    twitchSubscriptionEndpoint: string;
+    twitchSubscriptionsEndpoint: string;
     twitchAppIdFilepath: string;
     twitchOAuthEndpoint: string;
+    twitchUsersEndpoint: string;
+    maxMessages?: number;
 };
 
 export type YoutubeClientSecret = {
@@ -69,3 +71,43 @@ export type TwitchExpressRequest = Omit<ExpressRequest, "body"> & {
 };
 
 export type SparseArray<T> = (T | undefined)[];
+
+export type TwitchUser = {
+    id: string;
+    login: string;
+    display_name: string;
+    type: "admin" | "global_mod" | "staff" | "";
+    broadcaster_type: "affiliate" | "partner" | "";
+    description: string;
+    profile_image_url: string;
+    offline_image_url: string;
+    view_count: number;
+    email?: string;
+    created_at: string;
+};
+
+export type TwitchSubscription = {
+    id: string;
+    status: "enabled" | "webhook_callback_verification_pending";
+    type: string;
+    version: string;
+    condition: Record<string, unknown>;
+    created_at: string;
+    transport: TwitchTransport;
+    cost: number;
+};
+
+export type TwitchTransport =
+    | {
+          method: "webhook";
+          callback: string;
+      }
+    | {
+          method: "websocket";
+          session_id: string;
+          connected_at: string;
+      }
+    | {
+          method: "conduit";
+          conduit_id: string;
+      };

@@ -128,7 +128,7 @@ async function acquireToken(oAuth2Client: OAuth2Client, scopes: ScopeValues[]) {
     return getExistingToken();
 }
 
-export async function authorize(scopes: ScopeKeys[]) {
+export async function authorize(scopes: ScopeKeys[]): Promise<OAuth2Client> {
     try {
         const secret = await getSecret();
 

@@ -1,9 +1,6 @@
 import path from "path";
 
-import configuration from "./config.ts";
-import type { Config } from "./types.ts";
-
-import { streamStartNotifier } from "./notifier/stream_start_notifier.ts";
+import { notifier, startListening } from "./notifier/stream_start_notifier.ts";
 import { downloadHlsStreamFromUrl } from "./grabber/downloader.ts";
 import { grabPlaylistUrl } from "./grabber/playlist_grabber.ts";
 import { VideoFileReader } from "./uploader/reader.ts";
@@ -11,6 +8,9 @@ import { uploadVideo } from "./uploader/uploader.ts";
 import { cleanDirectory } from "./utils/cleaner.ts";
 import { FileRotator } from "./utils/rotator.ts";
 
+import type { Config } from "./types.ts";
+
+import configuration from "./config.ts";
 // this is needed because there might be type errors if config is defined using 'satisfies' keyword rather than assigning
 // type like this: const config: Config = {// config here}
 // i decided to do this for convenience when creating config file
@@ -22,7 +22,7 @@ if (path.resolve(config.outputDirectory) === path.resolve(process.cwd())) {
     throw new Error("Can't use current working directory as output directory!");
 }
 
-async function start() {
+async function startReuploading() {
     await cleanDirectory({
         directory: config.outputDirectory,
         autoConfirm: config.autoConfirmClearingOutputDirectory,
@@ -57,7 +57,7 @@ function isAllowedToStart() {
     return true;
 }
 
-streamStartNotifier.subscribe((notification) => {
+notifier.subscribe((notification) => {
     console.log(
         `Twitch stream at ${
             config.streamUrl
@@ -70,3 +70,4 @@ streamStartNotifier.subscribe((notification) => {
         setTimeout(() => 2, 15000);
     }
 });
+startListening();

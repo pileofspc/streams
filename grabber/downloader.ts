@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import path from "path";
-import onExit from "node-cleanup";
+import exitHook from "exit-hook";
 
 export function downloadHlsStreamFromUrl(config: {
     m3u8Url: string;
@@ -20,7 +20,7 @@ export function downloadHlsStreamFromUrl(config: {
 
     const downloader = exec(cmd);
 
-    onExit((exitCode, signal) => {
+    exitHook((signal) => {
         console.log("killing process: ", downloader.pid);
         downloader.kill();
     });
