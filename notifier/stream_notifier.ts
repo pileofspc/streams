@@ -34,9 +34,9 @@ const webhook_url = new URL(config.webhookURL).pathname;
 const secret = await getSecret<string>(config.twitchSecretFilepath);
 let isListening = false;
 let subscriptionId: string;
-export const notifier = new SimplePublisher<[TwitchNotification]>();
+const emitter = new SimplePublisher<[TwitchNotification]>();
 
-export async function startListening() {
+async function startListening() {
     if (isListening) {
         console.log("Already listening!");
         return;
@@ -84,7 +84,7 @@ export async function startListening() {
                     );
                     console.log(JSON.stringify(notification, null, 4));
 
-                    notifier.emit(notification);
+                    emitter.emit(notification);
 
                     break;
                 case MESSAGE_TYPE_VERIFICATION:
@@ -128,3 +128,11 @@ asyncExitHook(
     },
     { wait: 10_000 }
 );
+
+export const streamNotifier = {
+    emitter,
+    startListening,
+    get isListening() {
+        return isListening;
+    },
+};

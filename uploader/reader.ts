@@ -7,7 +7,7 @@ type NotificationData = readonly string[];
 type PublisherEventMap = { processed: [processedFilesInfo: NotificationData] };
 
 export class VideoFileReader extends Readable {
-    observer = new Publisher<PublisherEventMap>();
+    emitter = new Publisher<PublisherEventMap>();
     private _processedFiles: string[] = [];
     private _segmentIndex = -1;
     private _fileName = "";
@@ -155,7 +155,7 @@ export class VideoFileReader extends Readable {
 
     private _updateProcessedFiles() {
         this._processedFiles.push(this._fileName);
-        this.observer.emit("processed", this.processedFiles);
+        this.emitter.emit("processed", this.processedFiles);
     }
 
     async _read(): Promise<void> {

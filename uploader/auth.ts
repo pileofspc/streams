@@ -37,20 +37,20 @@ async function getSecret(): Promise<YoutubeClientSecret> {
     }
 }
 function tokenExists() {
-    return fs.existsSync(config.tokensFilepath);
+    return fs.existsSync(config.youtubeTokensFilepath);
 }
 async function getExistingToken(): Promise<Credentials> {
     try {
         return JSON.parse(
-            await fs.promises.readFile(config.tokensFilepath, {
+            await fs.promises.readFile(config.youtubeTokensFilepath, {
                 encoding: "utf-8",
             })
         );
     } catch (error) {
         throw new FileSystemError(
-            `Failed to read/parse token file: ${config.tokensFilepath}. \n ${
-                error instanceof Error ? error.message : String(error)
-            }`
+            `Failed to read/parse token file: ${
+                config.youtubeTokensFilepath
+            }. \n ${error instanceof Error ? error.message : String(error)}`
         );
     }
 }
@@ -74,15 +74,15 @@ async function storeToken(token: Credentials) {
 
     try {
         await fs.promises.writeFile(
-            config.tokensFilepath,
+            config.youtubeTokensFilepath,
             JSON.stringify(token)
         );
-        console.log("Token stored to: ", config.tokensFilepath);
+        console.log("Token stored to: ", config.youtubeTokensFilepath);
     } catch (error) {
         throw new FileSystemError(
-            `Failed to write to token file: ${config.tokensFilepath}. \n ${
-                error instanceof Error ? error.message : String(error)
-            }`,
+            `Failed to write to token file: ${
+                config.youtubeTokensFilepath
+            }. \n ${error instanceof Error ? error.message : String(error)}`,
             {
                 cause: error,
             }

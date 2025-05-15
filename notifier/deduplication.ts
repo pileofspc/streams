@@ -4,14 +4,14 @@ import configuration from "../config.ts";
 const config: Config = configuration;
 
 const processedMessageIds: string[] = [];
-const MAX_PROCESSED_IDS = config.maxMessages || 10;
+const MAX_TRACKED_IDS = config.maxWebhookMessageIdsTracked || 10;
 
 export function shouldProcessMessage(messageId: string): boolean {
     if (processedMessageIds.includes(messageId)) {
         return false;
     }
 
-    if (processedMessageIds.length >= MAX_PROCESSED_IDS) {
+    if (processedMessageIds.length >= MAX_TRACKED_IDS) {
         processedMessageIds.shift();
     }
     processedMessageIds.push(messageId);

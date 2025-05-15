@@ -8,14 +8,14 @@ export type Config = {
     readingTimeout?: number;
     secretDirectory: string;
     youtubeSecretFilepath: string;
-    tokensFilepath: string;
-    webhookURL: string;
+    youtubeTokensFilepath: string;
     twitchSecretFilepath: string;
     twitchSubscriptionsEndpoint: string;
     twitchAppIdFilepath: string;
     twitchOAuthEndpoint: string;
     twitchUsersEndpoint: string;
-    maxMessages?: number;
+    webhookURL: string;
+    maxWebhookMessageIdsTracked?: number;
 };
 
 export type YoutubeClientSecret = {

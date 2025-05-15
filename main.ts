@@ -1,6 +1,6 @@
 import path from "path";
 
-import { notifier, startListening } from "./notifier/stream_start_notifier.ts";
+import { streamNotifier } from "./notifier/stream_notifier.ts";
 import { downloadHlsStreamFromUrl } from "./grabber/downloader.ts";
 import { grabPlaylistUrl } from "./grabber/playlist_grabber.ts";
 import { VideoFileReader } from "./uploader/reader.ts";
@@ -45,7 +45,7 @@ async function startReuploading() {
         maxFilesToKeep: 10,
     });
 
-    fileReader.observer.subscribe("processed", (files) => {
+    fileReader.emitter.subscribe("processed", (files) => {
         fileRotator.rotate(files);
     });
 
@@ -57,7 +57,7 @@ function isAllowedToStart() {
     return true;
 }
 
-notifier.subscribe(() => {
+streamNotifier.emitter.subscribe(() => {
     console.log(
         `Twitch stream at ${
             config.streamUrl
@@ -68,4 +68,4 @@ notifier.subscribe(() => {
         startReuploading();
     }
 });
-startListening();
+streamNotifier.startListening();
