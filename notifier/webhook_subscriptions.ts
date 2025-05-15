@@ -50,7 +50,7 @@ export async function requestSubscription(
         },
         transport: {
             method: "webhook",
-            callback: config.webhookURL,
+            callback: config.webhookExternalURL,
             secret: await getSecret<string>(config.twitchSecretFilepath),
         },
     };

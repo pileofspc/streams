@@ -10,7 +10,9 @@ export default {
     youtubeSecretFilepath: "./secret/youtube_secret.json",
     twitchSecretFilepath: "./secret/twitch_secret.json",
     twitchAppIdFilepath: "./secret/twitch_app_id.json",
-    webhookURL: `http://localhost:1001/webhook`,
+    //Twitch requires https and port 443 so you'd need to configure something like nginx
+    // to take care of SSL certificates and redirecting api calls to your webhook if it runs on a different port
+    webhookExternalURL: `http://localhost:1001/webhook`,
     twitchSubscriptionsEndpoint:
         "https://api.twitch.tv/helix/eventsub/subscriptions",
     twitchOAuthEndpoint: "https://id.twitch.tv/oauth2/token",
