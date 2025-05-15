@@ -15,7 +15,7 @@ export type Config = {
     twitchOAuthEndpoint: string;
     twitchUsersEndpoint: string;
     webhookExternalURL: string;
-    webhookInternalPort: number;
+    webhookInternalPort?: number;
     maxWebhookMessageIdsTracked?: number;
 };
 
