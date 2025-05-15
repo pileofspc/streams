@@ -97,17 +97,8 @@ export type TwitchSubscription = {
     cost: number;
 };
 
-export type TwitchTransport =
-    | {
-          method: "webhook";
-          callback: string;
-      }
-    | {
-          method: "websocket";
-          session_id: string;
-          connected_at: string;
-      }
-    | {
-          method: "conduit";
-          conduit_id: string;
-      };
+export type TwitchTransport = {
+    method: "webhook";
+    callback: string;
+    secret?: string;
+};

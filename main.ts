@@ -57,17 +57,15 @@ function isAllowedToStart() {
     return true;
 }
 
-notifier.subscribe((notification) => {
+notifier.subscribe(() => {
     console.log(
         `Twitch stream at ${
             config.streamUrl
-        } started at ${new Date().toUTCString()}.`
+        } started at ${new Date().toUTCString()}`
     );
     if (isAllowedToStart()) {
-        console.log("Trying to upload stream to youtube in real time.");
-        // start();
-        console.log("waiting 15 seconds before terminating");
-        setTimeout(() => 2, 15000);
+        console.log("Starting reupload");
+        startReuploading();
     }
 });
 startListening();

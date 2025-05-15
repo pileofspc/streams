@@ -1,6 +1,11 @@
 import configuration from "../config.ts";
 import { getSecret } from "../utils/utils.ts";
-import type { Config, TwitchSubscription, TwitchUser } from "../types.ts";
+import type {
+    Config,
+    TwitchSubscription,
+    TwitchTransport,
+    TwitchUser,
+} from "../types.ts";
 import type { AuthorizedClient } from "./auth.ts";
 
 const config: Config = configuration;
@@ -28,23 +33,31 @@ async function getTwitchUserId(
 export async function requestSubscription(
     authClient: AuthorizedClient
 ): Promise<TwitchSubscription> {
+    type SubscriptionRequest = {
+        type: string;
+        version: string;
+        condition: Record<string, unknown>;
+        transport: TwitchTransport;
+    };
+    const reqBody: SubscriptionRequest = {
+        type: "stream.online",
+        version: "1",
+        condition: {
+            broadcaster_user_id: await getTwitchUserId(
+                config.streamUrl,
+                authClient
+            ),
+        },
+        transport: {
+            method: "webhook",
+            callback: config.webhookURL,
+            secret: await getSecret<string>(config.twitchSecretFilepath),
+        },
+    };
+
     const response = await authClient(config.twitchSubscriptionsEndpoint, {
         method: "POST",
-        body: JSON.stringify({
-            type: "stream.online",
-            version: "1",
-            condition: {
-                broadcaster_user_id: getTwitchUserId(
-                    config.streamUrl,
-                    authClient
-                ),
-            },
-            transport: {
-                method: "webhook",
-                callback: config.webhookURL,
-                secret: await getSecret<string>(config.twitchSecretFilepath),
-            },
-        }),
+        body: JSON.stringify(reqBody),
     });
     type SubscriptionResponse = {
         data: TwitchSubscription[];
@@ -52,10 +65,10 @@ export async function requestSubscription(
         total_cost: number;
         max_total_cost: number;
     };
-    const body = (await response.json()) as SubscriptionResponse;
+    const resBody: SubscriptionResponse = await response.json();
 
     // FIXME: add error handling
-    return body.data[0]!;
+    return resBody.data[0]!;
 }
 
 export async function revokeSubscription(
