@@ -100,13 +100,18 @@ export async function getSecret<T>(path: string): Promise<T> {
 
 export function wrapFetchWithHeaderOverrides(headers: Headers) {
     return ((...args) => {
+        const url = args[0];
         let init = args[1];
         if (init) {
             init.headers = new Headers({
                 ...init.headers,
                 ...headers,
             });
+        } else {
+            init = {
+                headers: new Headers(headers),
+            };
         }
-        return fetch(...args);
+        return fetch(url, init);
     }) as typeof fetch;
 }
