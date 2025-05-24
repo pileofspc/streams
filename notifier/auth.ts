@@ -25,10 +25,8 @@ async function getAccessToken(): Promise<string> {
 
 export type AuthorizedClient = typeof fetch;
 export async function authorize(): Promise<AuthorizedClient> {
-    return wrapFetchWithHeaderOverrides(
-        new Headers({
-            Authorization: `Bearer ${await getAccessToken()}`,
-            "Client-Id": await getSecret<string>(config.twitchAppIdFilepath),
-        })
-    );
+    return wrapFetchWithHeaderOverrides({
+        Authorization: `Bearer ${await getAccessToken()}`,
+        "Client-Id": await getSecret<string>(config.twitchAppIdFilepath),
+    });
 }

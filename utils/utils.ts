@@ -98,15 +98,15 @@ export async function getSecret<T>(path: string): Promise<T> {
     return JSON.parse(secret);
 }
 
-export function wrapFetchWithHeaderOverrides(headers: Headers) {
+export function wrapFetchWithHeaderOverrides(headers: HeadersInit) {
     return ((...args) => {
         const url = args[0];
         let init = args[1];
         if (init) {
-            init.headers = new Headers({
-                ...init.headers,
-                ...headers,
-            });
+            init.headers = new Headers([
+                ...new Headers(init.headers),
+                ...new Headers(headers),
+            ]);
         } else {
             init = {
                 headers: new Headers(headers),
