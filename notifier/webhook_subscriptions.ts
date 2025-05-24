@@ -58,6 +58,9 @@ export async function requestSubscription(
     const response = await authClient(config.twitchSubscriptionsEndpoint, {
         method: "POST",
         body: JSON.stringify(reqBody),
+        headers: {
+            "Content-Type": "application/json",
+        },
     });
     type SubscriptionResponse = {
         data: TwitchSubscription[];
