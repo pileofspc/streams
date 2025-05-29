@@ -5,8 +5,7 @@
     "main": "main.ts",
     "type": "module",
     "scripts": {
-        "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts",
-        "request": "node --experimental-transform-types ./utils/coolFetch.ts"
+        "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts"
     },
     "author": "",
     "license": "ISC",
