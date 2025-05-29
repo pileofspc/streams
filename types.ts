@@ -2,10 +2,11 @@ import type { Express } from "express";
 
 export type Config = {
     streamUrl: string;
+    twitchWebhookExternalUrl: string;
     outputDirectory: string;
-    autoConfirmClearingOutputDirectory?: boolean;
-    timeDownloadingSeconds?: number;
-    readingTimeout?: number;
+    autoConfirmClearingOutputDirectory: boolean;
+    timeDownloadingSeconds: number;
+    readingTimeout: number;
     secretDirectory: string;
     youtubeSecretFilepath: string;
     youtubeTokensFilepath: string;
@@ -14,10 +15,18 @@ export type Config = {
     twitchAppIdFilepath: string;
     twitchOAuthEndpoint: string;
     twitchUsersEndpoint: string;
-    webhookExternalURL: string;
-    webhookInternalPort?: number;
-    maxWebhookMessageIdsTracked?: number;
+    twitchWebhookInternalPort: number;
+    twitchWebhookMaxMessageIdsTracked: number;
 };
+export type ConfigDefault = Omit<
+    Config,
+    "streamUrl" | "twitchWebhookExternalUrl"
+>;
+export type ConfigUser = Pick<
+    Config,
+    "streamUrl" | "twitchWebhookExternalUrl"
+> &
+    Partial<ConfigDefault>;
 
 export type YoutubeClientSecret = {
     installed: {

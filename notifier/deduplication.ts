@@ -1,10 +1,10 @@
 import type { Config } from "../types.ts";
 
-import configuration from "../config.ts";
+import configuration from "../config/config.ts";
 const config: Config = configuration;
 
 const processedMessageIds: string[] = [];
-const MAX_TRACKED_IDS = config.maxWebhookMessageIdsTracked || 10;
+const MAX_TRACKED_IDS = config.twitchWebhookMaxMessageIdsTracked || 10;
 
 export function shouldProcessMessage(messageId: string): boolean {
     if (processedMessageIds.includes(messageId)) {

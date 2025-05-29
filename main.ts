@@ -10,7 +10,7 @@ import { FileRotator } from "./utils/rotator.ts";
 
 import type { Config } from "./types.ts";
 
-import configuration from "./config.ts";
+import configuration from "./config/config.ts";
 // this is needed because there might be type errors if config is defined using 'satisfies' keyword rather than assigning
 // type like this: const config: Config = {// config here}
 // i decided to do this for convenience when creating config file

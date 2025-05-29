@@ -3,7 +3,7 @@ import readline from "readline/promises";
 import { google } from "googleapis";
 import type { Credentials, OAuth2Client } from "google-auth-library";
 
-import configuration from "../config.ts";
+import configuration from "../config/config.ts";
 import { isErrnoException } from "../utils/utils.ts";
 import type { YoutubeClientSecret, Config } from "../types.ts";
 import { AuthError, FileSystemError } from "../utils/errors.ts";

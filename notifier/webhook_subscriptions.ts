@@ -1,4 +1,4 @@
-import configuration from "../config.ts";
+import configuration from "../config/config.ts";
 import { getSecret } from "../utils/utils.ts";
 import type {
     Config,
@@ -50,7 +50,7 @@ export async function requestSubscription(
         },
         transport: {
             method: "webhook",
-            callback: config.webhookExternalURL,
+            callback: config.twitchWebhookExternalUrl,
             secret: await getSecret<string>(config.twitchSecretFilepath),
         },
     };
