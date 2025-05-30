@@ -1,0 +1,27 @@
+name: docker-streams
+services:
+    streams:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        ports:
+            - 4000:4000
+        volumes:
+            - .:/application:ro
+            - /application/node_modules
+            - ./output:/application/output
+        secrets:
+            - twitch_app_id
+            - twitch_secret
+            - youtube_secret
+            - youtube_tokens
+
+secrets:
+    twitch_app_id:
+        file: ./secret/twitch_app_id.json
+    twitch_secret:
+        file: ./secret/twitch_secret.json
+    youtube_secret:
+        file: ./secret/youtube_secret.json
+    youtube_tokens:
+        file: ./secret/youtube_tokens.json

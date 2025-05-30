@@ -5,6 +5,7 @@
     "main": "main.ts",
     "type": "module",
     "scripts": {
+        "preinstall": "npx -y playwright install firefox --with-deps",
         "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts",
         "typecheck": "tsc --noEmit"
     },
