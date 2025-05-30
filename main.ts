@@ -49,7 +49,7 @@ async function startReuploading() {
         fileRotator.rotate(files);
     });
 
-    // await uploadVideo(fileReader);
+    await uploadVideo(fileReader);
 }
 
 function isAllowedToStart() {
@@ -57,17 +57,17 @@ function isAllowedToStart() {
     return true;
 }
 
-// streamNotifier.emitter.subscribe(() => {
-//     console.log(
-//         `Twitch stream at ${
-//             config.streamUrl
-//         } started at ${new Date().toUTCString()}`
-//     );
-//     if (isAllowedToStart()) {
-//         console.log("Starting reupload");
-//         startReuploading();
-//     }
-// });
-// streamNotifier.startListening();
+streamNotifier.emitter.subscribe(() => {
+    console.log(
+        `Twitch stream at ${
+            config.streamUrl
+        } started at ${new Date().toUTCString()}`
+    );
+    if (isAllowedToStart()) {
+        console.log("Starting reupload");
+        startReuploading();
+    }
+});
+streamNotifier.startListening();
 
 startReuploading();

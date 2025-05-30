@@ -2,12 +2,31 @@ import { exec } from "child_process";
 import path from "path";
 import exitHook from "exit-hook";
 
-export function downloadHlsStreamFromUrl(config: {
+async function isFfmpegInstalled() {
+    return new Promise((res) => {
+        exec("ffmpeg -version", (stderr, stdout) => {
+            res(!stderr);
+        });
+    });
+}
+
+async function assertFfmpegInstallation() {
+    console.log("Checking if Ffmpeg is installed...");
+    if (!(await isFfmpegInstalled())) {
+        console.log("Checking if Ffmpeg is installed...");
+        throw new Error("ffmpeg is required to run this application");
+    }
+    console.log("ffmpeg is installed. Continuing...");
+
+    console.log("Downloading stream...");
+}
+
+export async function downloadHlsStreamFromUrl(config: {
     m3u8Url: string;
     outputDirectory: string;
     timeLimitSeconds?: number;
 }) {
-    console.log("Downloading stream...");
+    await assertFfmpegInstallation();
 
     const timeLimit = config.timeLimitSeconds;
     const shouldLimitTime = typeof timeLimit === "number" && timeLimit > 0;

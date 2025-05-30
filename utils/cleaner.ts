@@ -8,25 +8,11 @@ export function deleteAllFilesWithExtensionFromDirectory(
     directory: string,
     pattern: string
 ) {
-    const dir = path.resolve(directory);
-
-    const regex = new RegExp(
-        `^${pattern
-            .replace(/\./g, "\\.")
-            .replace(/\*/g, ".*")
-            .replace(/\?/g, ".")}$`,
-        "i"
-    );
-
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-    const filesToDelete = entries
-        .filter((entry) => entry.isFile() && regex.test(entry.name))
-        .map((entry) => entry.name);
+    const globPattern = path.resolve(directory, pattern);
+    const filesToDelete = fs.globSync(globPattern);
 
     for (const file of filesToDelete) {
-        const filePath = path.join(dir, file);
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(file);
     }
 }
 
@@ -58,7 +44,7 @@ export async function cleanDirectory(options: {
     autoConfirm?: boolean;
     pattern?: string;
 }) {
-    const pattern = options.pattern ?? ".*";
+    const pattern = options.pattern ?? "*.*";
 
     console.log(
         `Checking if specified directory contains files matching this pattern: ${pattern}`
