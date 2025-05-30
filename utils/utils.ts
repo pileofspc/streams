@@ -112,6 +112,14 @@ export function wrapFetchWithHeaderOverrides(headers: HeadersInit) {
                 headers: new Headers(headers),
             };
         }
+
+        console.log(
+            `sending ${
+                init.method || "GET"
+            } request at url: ${url.toString()}\n with body: `,
+            init.body
+        );
+
         return fetch(url, init);
     }) as typeof fetch;
 }

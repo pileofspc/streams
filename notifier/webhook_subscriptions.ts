@@ -21,10 +21,14 @@ async function getTwitchUserId(
     const url = new URL(config.twitchUsersEndpoint);
     url.searchParams.append("login", login);
 
+    console.log("Getting Twitch User Id...");
+
     const response = await authClient(url);
     const body = (await response.json()) as {
         data: TwitchUser[];
     };
+
+    console.log("response:", body);
 
     // FIXME: add error handling
     return body.data[0]?.id!;
@@ -55,6 +59,8 @@ export async function requestSubscription(
         },
     };
 
+    console.log("Requesting subscription...");
+
     const response = await authClient(config.twitchSubscriptionsEndpoint, {
         method: "POST",
         body: JSON.stringify(reqBody),
@@ -70,6 +76,8 @@ export async function requestSubscription(
     };
     const resBody: SubscriptionResponse = await response.json();
 
+    console.log("response: ", resBody);
+
     // FIXME: add error handling
     return resBody.data[0]!;
 }
@@ -81,9 +89,15 @@ export async function revokeSubscription(
     const url = new URL(config.twitchSubscriptionsEndpoint);
     url.searchParams.append("id", id);
 
-    await authClient(url, {
+    console.log("Revoking subscription...");
+
+    const response = await authClient(url, {
         method: "DELETE",
     });
+
+    const body = await response.json();
+
+    console.log("response: ", body);
 
     // FIXME: add error handling
 }
