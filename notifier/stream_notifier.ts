@@ -30,7 +30,7 @@ const MESSAGE_TYPE_REVOCATION = "revocation" as const;
 
 const app = express();
 const port = config.twitchWebhookInternalPort || 443;
-const webhook_url = new URL(config.twitchWebhookExternalUrl).pathname;
+// const webhook_url = new URL(config.twitchWebhookExternalUrl).pathname;
 const secret = await getSecret<string>(config.secretsTwitch);
 let isListening = false;
 let subscriptionId: string;
@@ -44,7 +44,7 @@ async function startListening() {
     isListening = true;
 
     app.post(
-        webhook_url,
+        "/",
         express.raw({
             // Need raw message body for signature verification
             type: "application/json",
@@ -56,7 +56,6 @@ async function startListening() {
             const body = req.body;
 
             console.log("got a message: ", body);
-            console.log("signature: ", signature);
             console.log("messageId: ", messageId);
             console.log("timestamp: ", timestamp);
 
@@ -119,6 +118,8 @@ async function startListening() {
             }
         }
     );
+
+    console.log(`Webhook listening at port: ${port}`);
 
     app.listen(port);
 
