@@ -1,4 +1,4 @@
-import config from "../config.ts";
+import config from "../config/config.ts";
 import type { TwitchAccessToken } from "../types.ts";
 import { getSecret, wrapFetchWithHeaderOverrides } from "../utils/utils.ts";
 

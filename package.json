@@ -5,7 +5,8 @@
     "main": "main.ts",
     "type": "module",
     "scripts": {
-        "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts"
+        "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts",
+        "typecheck": "tsc --noEmit"
     },
     "author": "",
     "license": "ISC",
@@ -13,7 +14,8 @@
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.1",
         "@types/node": "^22.13.0",
-        "@types/node-cleanup": "^2.1.5"
+        "@types/node-cleanup": "^2.1.5",
+        "typescript": "^5.8.3"
     },
     "dependencies": {
         "@playwright/test": "^1.50.1",

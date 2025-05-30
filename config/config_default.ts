@@ -5,7 +5,6 @@ export default {
     autoConfirmClearingOutputDirectory: false,
     readingTimeout: 120,
     timeDownloadingSeconds: 0,
-    secretDirectory: "./secret",
     youtubeTokensFilepath: "./secret/tokens.json",
     youtubeSecretFilepath: "./secret/youtube_secret.json",
     twitchSecretFilepath: "./secret/twitch_secret.json",

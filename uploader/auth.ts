@@ -56,23 +56,6 @@ async function getExistingToken(): Promise<Credentials> {
 }
 async function storeToken(token: Credentials) {
     try {
-        await fs.promises.mkdir(config.secretDirectory);
-    } catch (error) {
-        if (!(isErrnoException(error) && error.code === "EEXIST")) {
-            throw new FileSystemError(
-                `Failed to create secret directory: ${
-                    config.secretDirectory
-                }. \n ${
-                    error instanceof Error ? error.message : String(error)
-                }`,
-                {
-                    cause: error,
-                }
-            );
-        }
-    }
-
-    try {
         await fs.promises.writeFile(
             config.youtubeTokensFilepath,
             JSON.stringify(token)

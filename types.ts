@@ -7,7 +7,6 @@ export type Config = {
     autoConfirmClearingOutputDirectory: boolean;
     timeDownloadingSeconds: number;
     readingTimeout: number;
-    secretDirectory: string;
     youtubeSecretFilepath: string;
     youtubeTokensFilepath: string;
     twitchSecretFilepath: string;
