@@ -55,6 +55,11 @@ async function startListening() {
             const timestamp = req.headers[TWITCH_MESSAGE_TIMESTAMP];
             const body = req.body;
 
+            console.log("got a message: ", body);
+            console.log("signature: ", signature);
+            console.log("messageId: ", messageId);
+            console.log("timestamp: ", timestamp);
+
             assert(messageId && timestamp && body);
 
             let message = getHmacMessage(messageId, timestamp, body);
