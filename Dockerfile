@@ -6,5 +6,4 @@ COPY package*.json ./
 RUN npm install
 COPY ./ ./
 
-ENTRYPOINT [ "npm", "run" ]
-CMD [ "start" ]
+CMD [ "npm", "run", "start" ]
