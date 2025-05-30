@@ -7,15 +7,15 @@ export type Config = {
     autoConfirmClearingOutputDirectory: boolean;
     timeDownloadingSeconds: number;
     readingTimeout: number;
-    youtubeSecretFilepath: string;
-    youtubeTokensFilepath: string;
-    twitchSecretFilepath: string;
     twitchSubscriptionsEndpoint: string;
-    twitchAppIdFilepath: string;
     twitchOAuthEndpoint: string;
     twitchUsersEndpoint: string;
     twitchWebhookInternalPort: number;
     twitchWebhookMaxMessageIdsTracked: number;
+    secretsYoutube: string;
+    secretsYoutubeTokens: string;
+    secretsTwitch: string;
+    secretsTwitchAppId: string;
 };
 export type ConfigDefault = Omit<
     Config,

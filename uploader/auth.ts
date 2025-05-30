@@ -21,15 +21,15 @@ type ScopeValues = ScopeMap[ScopeKeys];
 async function getSecret(): Promise<YoutubeClientSecret> {
     try {
         return JSON.parse(
-            await fs.promises.readFile(config.youtubeSecretFilepath, {
+            await fs.promises.readFile(config.secretsYoutube, {
                 encoding: "utf-8",
             })
         );
     } catch (error) {
         throw new FileSystemError(
-            `Failed to read/parse secret file: ${
-                config.youtubeSecretFilepath
-            }. ${error instanceof Error ? error.message : String(error)}`,
+            `Failed to read/parse secret file: ${config.secretsYoutube}. ${
+                error instanceof Error ? error.message : String(error)
+            }`,
             {
                 cause: error,
             }
@@ -37,19 +37,19 @@ async function getSecret(): Promise<YoutubeClientSecret> {
     }
 }
 function tokenExists() {
-    return fs.existsSync(config.youtubeTokensFilepath);
+    return fs.existsSync(config.secretsYoutubeTokens);
 }
 async function getExistingToken(): Promise<Credentials> {
     try {
         return JSON.parse(
-            await fs.promises.readFile(config.youtubeTokensFilepath, {
+            await fs.promises.readFile(config.secretsYoutubeTokens, {
                 encoding: "utf-8",
             })
         );
     } catch (error) {
         throw new FileSystemError(
             `Failed to read/parse token file: ${
-                config.youtubeTokensFilepath
+                config.secretsYoutubeTokens
             }. \n ${error instanceof Error ? error.message : String(error)}`
         );
     }
@@ -57,14 +57,14 @@ async function getExistingToken(): Promise<Credentials> {
 async function storeToken(token: Credentials) {
     try {
         await fs.promises.writeFile(
-            config.youtubeTokensFilepath,
+            config.secretsYoutubeTokens,
             JSON.stringify(token)
         );
-        console.log("Token stored to: ", config.youtubeTokensFilepath);
+        console.log("Token stored to: ", config.secretsYoutubeTokens);
     } catch (error) {
         throw new FileSystemError(
             `Failed to write to token file: ${
-                config.youtubeTokensFilepath
+                config.secretsYoutubeTokens
             }. \n ${error instanceof Error ? error.message : String(error)}`,
             {
                 cause: error,

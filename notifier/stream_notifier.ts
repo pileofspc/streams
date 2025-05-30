@@ -31,7 +31,7 @@ const MESSAGE_TYPE_REVOCATION = "revocation" as const;
 const app = express();
 const port = config.twitchWebhookInternalPort || 443;
 const webhook_url = new URL(config.twitchWebhookExternalUrl).pathname;
-const secret = await getSecret<string>(config.twitchSecretFilepath);
+const secret = await getSecret<string>(config.secretsTwitch);
 let isListening = false;
 let subscriptionId: string;
 const emitter = new SimplePublisher<[TwitchNotification]>();
