@@ -69,5 +69,3 @@ streamNotifier.emitter.subscribe(() => {
     }
 });
 streamNotifier.startListening();
-
-startReuploading();
