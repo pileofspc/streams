@@ -3,8 +3,9 @@ import assert from "assert";
 import { asyncExitHook } from "exit-hook";
 
 import { getSecret, SimplePublisher } from "../utils/utils.ts";
-import { authorize } from "./auth.ts";
+import { authorize, type AuthorizedClient } from "./auth.ts";
 import {
+    getExistingSubscriptionId,
     requestSubscription,
     revokeSubscription,
 } from "./webhook_subscriptions.ts";
@@ -123,13 +124,18 @@ async function startListening() {
 
     app.listen(port);
 
-    subscriptionId = (await requestSubscription(await authorize())).id;
+    handleSubscriptions(await authorize());
+}
+
+async function handleSubscriptions(authClient: AuthorizedClient) {
+    const id = await getExistingSubscriptionId(authClient);
+    subscriptionId = id ? id : (await requestSubscription(authClient)).id;
 }
 
 asyncExitHook(
     async (signal) => {
         if (subscriptionId) {
-            await revokeSubscription(subscriptionId, await authorize());
+            await revokeSubscription(await authorize(), subscriptionId);
         }
     },
     { wait: 10_000 }

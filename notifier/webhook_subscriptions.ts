@@ -6,13 +6,32 @@ import type {
     TwitchTransport,
     TwitchUser,
 } from "../types.ts";
-import type { AuthorizedClient } from "./auth.ts";
+import { authorize, type AuthorizedClient } from "./auth.ts";
 
 const config: Config = configuration;
 
+const broadcaster_user_id = await getTwitchUserId(
+    await authorize(),
+    config.streamUrl
+);
+
+export async function getExistingSubscriptionId(authClient: AuthorizedClient) {
+    const subs = await getSubscriptions(authClient);
+
+    for (const sub of subs) {
+        if (
+            sub.condition.broadcaster_user_id === broadcaster_user_id &&
+            sub.status === "enabled"
+        )
+            return sub.id;
+    }
+
+    return null;
+}
+
 export async function getTwitchUserId(
-    streamUrl: string,
-    authClient: AuthorizedClient
+    authClient: AuthorizedClient,
+    streamUrl: string
 ) {
     const pathname = new URL(streamUrl).pathname;
     const parts = pathname.split("/").filter(Boolean);
@@ -58,10 +77,7 @@ export async function requestSubscription(
         type: "stream.online",
         version: "1",
         condition: {
-            broadcaster_user_id: await getTwitchUserId(
-                config.streamUrl,
-                authClient
-            ),
+            broadcaster_user_id: broadcaster_user_id,
         },
         transport: {
             method: "webhook",
@@ -94,8 +110,8 @@ export async function requestSubscription(
 }
 
 export async function revokeSubscription(
-    id: string,
-    authClient: AuthorizedClient
+    authClient: AuthorizedClient,
+    id: string
 ): Promise<void> {
     const url = new URL(config.twitchSubscriptionsEndpoint);
     url.searchParams.append("id", id);

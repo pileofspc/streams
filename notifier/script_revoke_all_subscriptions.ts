@@ -8,7 +8,9 @@ const client = await authorize();
 
 const subs = await getSubscriptions(client);
 
-await Promise.allSettled(subs.map((sub) => revokeSubscription(sub.id, client)));
+console.log(subs);
+
+await Promise.allSettled(subs.map((sub) => revokeSubscription(client, sub.id)));
 
 const resultingSubs = await getSubscriptions(client);
 
