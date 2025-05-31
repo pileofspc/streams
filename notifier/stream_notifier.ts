@@ -12,14 +12,9 @@ import {
 import { getHmac, getHmacMessage, verifyMessage } from "./verification.ts";
 import { shouldProcessMessage } from "./deduplication.ts";
 
-import type {
-    Config,
-    TwitchExpressRequest,
-    TwitchNotification,
-} from "../types.ts";
+import type { TwitchExpressRequest, TwitchNotification } from "../types.ts";
 
-import configuration from "../config/config.ts";
-const config: Config = configuration;
+import config from "../config/config.ts";
 
 const TWITCH_MESSAGE_ID = "twitch-eventsub-message-id" as const;
 const TWITCH_MESSAGE_TIMESTAMP = "twitch-eventsub-message-timestamp" as const;

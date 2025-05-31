@@ -1,7 +1,4 @@
-import type { Config } from "../types.ts";
-
-import configuration from "../config/config.ts";
-const config: Config = configuration;
+import config from "../config/config.ts";
 
 const processedMessageIds: string[] = [];
 const MAX_TRACKED_IDS = config.twitchWebhookMaxMessageIdsTracked || 10;

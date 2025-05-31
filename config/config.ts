@@ -2,7 +2,8 @@ import configDefault from "./config_default.ts";
 import configUser from "./config_user.ts";
 import type { Config } from "../types.ts";
 
-export default {
+const config: Config = {
     ...configDefault,
     ...configUser,
-} satisfies Config;
+};
+export default config;

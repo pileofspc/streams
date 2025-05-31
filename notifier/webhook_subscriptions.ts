@@ -1,14 +1,11 @@
-import configuration from "../config/config.ts";
+import config from "../config/config.ts";
 import { getSecret } from "../utils/utils.ts";
 import type {
-    Config,
     TwitchSubscription,
     TwitchTransport,
     TwitchUser,
 } from "../types.ts";
 import { authorize, type AuthorizedClient } from "./auth.ts";
-
-const config: Config = configuration;
 
 const broadcaster_user_id = await getTwitchUserId(
     await authorize(),
