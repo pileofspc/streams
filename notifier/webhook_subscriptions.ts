@@ -16,6 +16,8 @@ const broadcaster_user_id = await getTwitchUserId(
 );
 
 export async function getExistingSubscriptionId(authClient: AuthorizedClient) {
+    console.log(`Checking if subscription exists...`);
+
     const subs = await getSubscriptions(authClient);
 
     for (const sub of subs) {
@@ -23,9 +25,11 @@ export async function getExistingSubscriptionId(authClient: AuthorizedClient) {
             sub.condition.broadcaster_user_id === broadcaster_user_id &&
             sub.status === "enabled"
         )
-            return sub.id;
+            console.log(`Subscription DOES exist`);
+        return sub.id;
     }
 
+    console.log(`Subscription DOES NOT exist`);
     return null;
 }
 
@@ -33,14 +37,14 @@ export async function getTwitchUserId(
     authClient: AuthorizedClient,
     streamUrl: string
 ) {
+    console.log("Getting Twitch User Id...");
+
     const pathname = new URL(streamUrl).pathname;
     const parts = pathname.split("/").filter(Boolean);
     const login = parts[0] ?? "";
 
     const url = new URL(config.twitchUsersEndpoint);
     url.searchParams.append("login", login);
-
-    console.log("Getting Twitch User Id...");
 
     const response = await authClient(url);
     const body = (await response.json()) as {
@@ -59,6 +63,8 @@ export async function getSubscriptions(authClient: AuthorizedClient) {
         data: TwitchSubscription[];
     };
 
+    console.log("Getting list of all existing subscriptions...");
+
     const response = await authClient(config.twitchSubscriptionsEndpoint);
     const body: TwitchSubscriptionsResponse = await response.json();
     return body.data;
@@ -67,6 +73,8 @@ export async function getSubscriptions(authClient: AuthorizedClient) {
 export async function requestSubscription(
     authClient: AuthorizedClient
 ): Promise<TwitchSubscription> {
+    console.log("Requesting new subscription...");
+
     type SubscriptionRequest = {
         type: string;
         version: string;
@@ -85,8 +93,6 @@ export async function requestSubscription(
             secret: await getSecret<string>(config.secretsTwitch),
         },
     };
-
-    console.log("Requesting subscription...");
 
     const response = await authClient(config.twitchSubscriptionsEndpoint, {
         method: "POST",
@@ -113,10 +119,10 @@ export async function revokeSubscription(
     authClient: AuthorizedClient,
     id: string
 ): Promise<void> {
+    console.log("Revoking subscription...");
+
     const url = new URL(config.twitchSubscriptionsEndpoint);
     url.searchParams.append("id", id);
-
-    console.log("Revoking subscription...");
 
     const response = await authClient(url, {
         method: "DELETE",
