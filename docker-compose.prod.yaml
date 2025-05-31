@@ -8,11 +8,18 @@ services:
             - 4000:4000
         volumes:
             - ./output:/application/output
+        configs:
+            - source: streams_user
+              target: /application/config/config_user.ts
         secrets:
             - twitch_app_id
             - twitch_secret
             - youtube_secret
             - youtube_tokens
+
+configs:
+    streams_user:
+        file: ./config/config_user.ts
 
 secrets:
     twitch_app_id:
