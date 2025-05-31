@@ -6,8 +6,8 @@ services:
             dockerfile: Dockerfile
         ports:
             - 4000:4000
-        volumes:
-            - ./output:/application/output
+        #volumes:
+        #    - ./output:/application/output
         configs:
             - source: streams_user
               target: /application/config/config_user.ts
