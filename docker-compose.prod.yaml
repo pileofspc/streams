@@ -15,7 +15,6 @@ services:
             - twitch_app_id
             - twitch_secret
             - youtube_secret
-            - youtube_tokens
 
 configs:
     streams_user:
@@ -28,5 +27,3 @@ secrets:
         file: ./secret/twitch_secret.json
     youtube_secret:
         file: ./secret/youtube_secret.json
-    youtube_tokens:
-        file: ./secret/youtube_tokens.json
