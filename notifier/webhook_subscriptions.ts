@@ -10,7 +10,7 @@ import type { AuthorizedClient } from "./auth.ts";
 
 const config: Config = configuration;
 
-async function getTwitchUserId(
+export async function getTwitchUserId(
     streamUrl: string,
     authClient: AuthorizedClient
 ) {
@@ -32,6 +32,17 @@ async function getTwitchUserId(
 
     // FIXME: add error handling
     return body.data[0]?.id!;
+}
+
+export async function getSubscriptions(authClient: AuthorizedClient) {
+    type TwitchSubscriptionsResponse = {
+        total: number;
+        data: TwitchSubscription[];
+    };
+
+    const response = await authClient(config.twitchSubscriptionsEndpoint);
+    const body: TwitchSubscriptionsResponse = await response.json();
+    return body.data;
 }
 
 export async function requestSubscription(

@@ -7,6 +7,7 @@
     "scripts": {
         "preinstall": "npx -y playwright install firefox --with-deps",
         "start": "node --experimental-transform-types --abort_on_uncaught_exception ./main.ts",
+        "revoke": "node --experimental-transform-types --abort_on_uncaught_exception ./notifier/script_revoke_all_subscriptions.ts",
         "typecheck": "tsc --noEmit"
     },
     "author": "",

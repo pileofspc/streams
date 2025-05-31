@@ -49,7 +49,7 @@ async function startReuploading() {
         fileRotator.rotate(files);
     });
 
-    // await uploadVideo(fileReader);
+    await uploadVideo(fileReader);
 }
 
 function isAllowedToStart() {
