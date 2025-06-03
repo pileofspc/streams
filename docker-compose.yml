@@ -5,16 +5,21 @@ services:
             context: ./
             dockerfile: Dockerfile
         ports:
+            - 4001:4001
             - 4000:4000
-        volumes:
-            - .:/application:ro
-            - /application/node_modules
-            - ./output:/application/output
+        #volumes:
+        #    - ./output:/application/output
+        configs:
+            - source: streams_user
+              target: /application/config/config_user.ts
         secrets:
             - twitch_app_id
             - twitch_secret
             - youtube_secret
-            - youtube_tokens
+
+configs:
+    streams_user:
+        file: ./config/config_user.ts
 
 secrets:
     twitch_app_id:
@@ -23,5 +28,3 @@ secrets:
         file: ./secret/twitch_secret.json
     youtube_secret:
         file: ./secret/youtube_secret.json
-    youtube_tokens:
-        file: ./secret/youtube_tokens.json
