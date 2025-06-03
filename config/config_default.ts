@@ -11,7 +11,7 @@ export default {
     twitchOAuthEndpoint: "https://id.twitch.tv/oauth2/token",
     twitchUsersEndpoint: "https://api.twitch.tv/helix/users",
     twitchWebhookMaxMessageIdsTracked: 10,
-    secretsYoutubeTokens: "./secret/tokens.json",
+    secretsYoutubeTokens: "./secret/youtube_tokens.json",
     secretsYoutube: "./secret/youtube_secret.json",
     secretsTwitch: "./secret/twitch_secret.json",
     secretsTwitchAppId: "./secret/twitch_app_id.json",

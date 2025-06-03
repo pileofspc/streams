@@ -5,7 +5,7 @@ export default {
     twitchWebhookExternalUrl: "https://example.com/stream",
     twitchWebhookInternalPort: 4000,
     // for Docker Secrets:
-    secretsYoutubeTokens: "/run/secrets/tokens",
+    secretsYoutubeTokens: "/run/secrets/youtube_tokens",
     secretsYoutube: "/run/secrets/youtube_secret",
     secretsTwitch: "/run/secrets/twitch_secret",
     secretsTwitchAppId: "/run/secrets/twitch_app_id",
